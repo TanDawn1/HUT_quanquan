@@ -15,10 +15,14 @@ public class User {
 
     private String account;
     //头像地址
-    private String avatar_picture;
+    private String avatarPicture;
     //个性签名
     private String signature;
 
     private int followers;
+
+    private String sex;
+
+    private String tele;
 
 }
