@@ -5,7 +5,8 @@ package com.hutquan.hut.vo;
  */
 public enum  EnumStatus {
 
-    SUCCESS(1,"success"),Fail(-1,"fail"),Repetition(0,"Repetition");
+    SUCCESS(1,"success"),Fail(-1,"fail"),Repetition(0,"Repetition")
+    ,RESNULL(0,"NOTRES");
 
     private int code;
 

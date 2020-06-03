@@ -39,6 +39,7 @@ public class UserController {
      */
     @PostMapping("/user/res")
     public ResponseBean res(@RequestBody User user){
+        //TODO 输入了手机号应该验证一遍
         int useId = iUserService.insertUser(user);
         if(useId == 1){
             return new ResponseBean(EnumStatus.SUCCESS.getCode(),EnumStatus.SUCCESS.getMessage(),null);

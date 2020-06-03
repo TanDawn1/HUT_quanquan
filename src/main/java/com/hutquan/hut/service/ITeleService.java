@@ -6,5 +6,7 @@ public interface ITeleService {
 
     boolean selectUser(String tele);
 
-    User  teleLogin(String tele,String code);
+    User  teleLogin(String tele,String yzm);
+
+    String sendTele(String tele);
 }

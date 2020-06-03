@@ -1,30 +1,35 @@
 package com.hutquan.hut.redis;
 
+import com.hutquan.hut.utils.RedisUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
-
-import java.io.Serializable;
-import java.util.Set;
 
 @SpringBootTest
 public class LettuceRedis {
 
     @Autowired
-    private RedisTemplate<String, Serializable> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private RedisUtils red;
 
     @Test
     public void get(){
 
-        SetOperations<String, Serializable> ops = redisTemplate.opsForSet();
+        String s = "123";
+        red.set("yzm:18973326132","123",30);
+//        red.expire("yzm:18973326132",30);
+        //直接替换
+        red.set("yzm:18973326132","12345",60);
 
-        Set<Serializable> opsset = ops.members("test1");
+        String s1 = (String) red.get("yzm:18973326132");
+        System.out.println(s1);
+        System.out.println(s1.equals("123"));
 
-        for(Serializable value: opsset){
-            System.out.println(value);
-        }
+
+
     }
 
 }

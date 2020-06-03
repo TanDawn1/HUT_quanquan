@@ -21,6 +21,10 @@
         SELECT * FROM `user` WHERE  `user_id` = #{userId}
     </select>
 
+    <select id="teleSelectUser" resultType="Integer">
+        SELECT user_id FROM `user` WHERE `tele` = #{tele}
+    </select>
+
     <insert id="insertUser" useGeneratedKeys="true" parameterType="com.hutquan.hut.pojo.User">
         INSERT INTO `user`(account,passwd,followers,tele,sex) VALUES (#{account},#{passwd},0,#{tele},#{sex})
     </insert>
@@ -33,5 +37,15 @@
         SELECT user_id,stu_number,username,account,signature,followers,tele,sex FROM `user`
         WHERE passwd = #{passwd} AND account = #{account}
     </select>
+
+    <select id="teleLogin" resultType="com.hutquan.hut.pojo.User">
+         SELECT user_id,stu_number,username,account,signature,followers,`user`.tele,sex FROM `user`
+         WHERE  tele_tem.tele = #{tele}
+    </select>
+
+    <insert id="insertTele" useGeneratedKeys="true">
+        INSERT INTO `tele_tem`(tele,`time`,yzm) VALUES (#{tele},#{time},#{yzm})
+        on duplicate key update yzm = #{yzm}, `time` = #{time}
+    </insert>
 
 </mapper>
