@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * 短信相关
+ */
 @RestController
 public class TeleController {
 

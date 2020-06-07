@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * 账号相关
+ */
 @RestController
 public class UserController {
 
@@ -22,7 +25,8 @@ public class UserController {
      * @return
      */
     @GetMapping("/user/selectuser")
-    public UserStatus selectUser(int userId){
+    public UserStatus selectUser(@RequestParam int userId){
+        System.out.println(userId);
         try {
             User user = iUserService.selectUser(userId);
             return new UserStatus(EnumStatus.SUCCESS.getCode(),EnumStatus.SUCCESS.getMessage(),user);
@@ -63,5 +67,14 @@ public class UserController {
         }else{
             return new ResponseBean(EnumStatus.Fail.getCode(),EnumStatus.Fail.getMessage(),null);
         }
+    }
+
+    /**
+     * 退出登录
+     * @return
+     */
+    @GetMapping("/user/out")
+    public void out(HttpServletRequest request){
+        request.getSession().removeAttribute("user");
     }
 }

@@ -2,8 +2,10 @@ package com.hutquan.hut.pojo;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class Comment {
+public class Comment implements Serializable {
 
     private int commentId;
     //评论

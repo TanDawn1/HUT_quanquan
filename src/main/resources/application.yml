@@ -40,7 +40,6 @@ spring:
     use-global-data-source-stat: true
     # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
     connect-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-
 server:
   port: 8080
 
@@ -49,3 +48,11 @@ mybatis:
   #驼峰
   configuration:
     mapUnderscoreToCamelCase: true
+
+pagehelper:
+  #指明用的是什么数据库
+  helper-dialect: mysql
+  #是否开始合理化分页
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql

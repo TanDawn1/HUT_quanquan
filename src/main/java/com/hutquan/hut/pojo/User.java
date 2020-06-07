@@ -1,9 +1,13 @@
 package com.hutquan.hut.pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 @Data
-public class User {
+public class User implements Serializable {
 
     private int userId;
     //学号
@@ -24,5 +28,8 @@ public class User {
     private String sex;
 
     private String tele;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime time;
 
 }

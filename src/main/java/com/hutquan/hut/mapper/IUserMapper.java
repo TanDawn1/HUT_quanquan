@@ -1,12 +1,14 @@
 package com.hutquan.hut.mapper;
 
 import com.hutquan.hut.pojo.User;
-import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
+
+/**
+ * 登录与注册
+ */
 @Repository
 public interface IUserMapper {
 
@@ -14,6 +16,7 @@ public interface IUserMapper {
 
     Integer teleSelectUser(String tele);
 
+    //返回的是匹配行数 1
     int insertUser(User user);
 
     Integer selectTele(String tele,String account);
@@ -24,7 +27,5 @@ public interface IUserMapper {
     User  teleLogin(String tele);
 
     int insertTele(String tele, String yzm, LocalDateTime time);
-
-
 
 }
