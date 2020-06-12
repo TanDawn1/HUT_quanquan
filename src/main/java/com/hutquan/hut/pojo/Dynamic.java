@@ -10,11 +10,13 @@ import java.util.List;
 @Data
 public class Dynamic implements Serializable {
 
+    private User user;
+
     private int dynamicId;
 
     private String message;
 
-    private int likeSum;
+    private Double likeSum;
 
     private int userId;
 
@@ -24,5 +26,11 @@ public class Dynamic implements Serializable {
     private String images;
 
     private List<String> imagesList;
+
+    //是否已经点赞
+    private boolean like;
+
+    //是否是自己的动态
+    private boolean self;
 
 }

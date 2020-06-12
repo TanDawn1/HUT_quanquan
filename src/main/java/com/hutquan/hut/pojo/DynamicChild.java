@@ -11,11 +11,13 @@ import java.util.List;
 @Data
 public class DynamicChild implements Serializable {
 
+    private User user;
+
     private int dynamicChildId;
 
     private String message;
 
-    private int likeSum;
+    private Double likeSum;
 
     private int userId;
 
@@ -26,4 +28,7 @@ public class DynamicChild implements Serializable {
 
     private List<String> imagesList;
 
+    private boolean like;
+
+    private boolean self;
 }

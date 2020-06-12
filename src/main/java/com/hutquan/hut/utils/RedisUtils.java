@@ -302,6 +302,20 @@ public class RedisUtils {
     }
 
     /**
+     * 获取set的大小
+     * @param key
+     * @return
+     */
+    public Long sCard(String key){
+        try{
+            return redisTemplate.opsForSet().size(key);
+        }catch (Exception e){
+            e.printStackTrace();
+            return 0L;
+        }
+    }
+
+    /**
      * 根据value从一个set中查询,是否存在 
      * @param key 键 
      * @param value 值 
@@ -322,12 +336,12 @@ public class RedisUtils {
      * @param values 值 可以是多个 
      * @return 成功个数
      */
-    public long sSet(String key, Object...values) {
+    public Long sSet(String key, Object...values) {
         try {
             return redisTemplate.opsForSet().add(key, values);
         } catch (Exception e) {
             e.printStackTrace();
-            return 0;
+            return 0L;
         }
     }
 
@@ -525,5 +539,48 @@ public class RedisUtils {
             e.printStackTrace();
             return 0;
         }
+    }
+
+//=================================sort set====================================
+    /**
+     * 实现命令 : ZSCORE key member
+     * 获取成员的分数
+     *
+     * @param key
+     * @param member
+     * @return
+     */
+    public Double zscore(String key, Object member){
+        try{
+            Double socer = redisTemplate.opsForZSet().score(key,member);
+            return socer;
+        }catch (Exception e){
+            e.printStackTrace();
+            return 0.0;
+        }
+    }
+
+    /**
+     * 实现命令 : ZINCRBY key 带符号的双精度浮点数 member
+     * 增减成员的分数
+     *
+     * @param key
+     * @param value
+     * @param delta 带符号的双精度浮点数
+     * @return
+     */
+    public Double zInCrBy(String key, Object value, double delta) {
+        return redisTemplate.opsForZSet().incrementScore(key, value, delta);
+    }
+
+    /**
+     * 实现添加成员
+     * @param key
+     * @param member
+     * @param score
+     * @return
+     */
+    public boolean zAdd(String key,Object member,double score){
+        return redisTemplate.opsForZSet().add(key,member,score);
     }
 }

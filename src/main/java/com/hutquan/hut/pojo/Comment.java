@@ -17,4 +17,6 @@ public class Comment implements Serializable {
 
     private int userId;
 
+    private User user;
+
 }

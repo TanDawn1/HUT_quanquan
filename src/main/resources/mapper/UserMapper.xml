@@ -26,7 +26,7 @@
     </select>
 
     <insert id="insertUser" parameterType="com.hutquan.hut.pojo.User" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO `user`(account,passwd,followers,tele,sex,time) VALUES (#{account},#{passwd},0,#{tele},#{sex},#{time})
+        INSERT INTO `user`(account,passwd,followers,tele,sex,`time`) VALUES (#{account},#{passwd},0,#{tele},#{sex},#{time})
     </insert>
 
     <select id="selectTele" parameterType="String" resultType="Integer">
@@ -47,5 +47,28 @@
         INSERT INTO `tele_tem`(tele,`time`,yzm) VALUES (#{tele},#{time},#{yzm})
         on duplicate key update yzm = #{yzm}, `time` = #{time}
     </insert>
+
+    <update id="updataUser" parameterType="com.hutquan.hut.pojo.User">
+        UPDATE `user` SET
+        <if test="stu_number != null">
+            stu_number = #{stuNumber},
+        </if>
+        <if test="user_name != null">
+            user_name = #{username},
+        </if>
+        <if test="signature != null">
+            signature = #{signature},
+        </if>
+        <if test="sex != null">
+            sex = #{sex},
+        </if>
+        1 = 1
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="upHeadUrl" parameterType="com.hutquan.hut.pojo.User">
+        UPDATE `user` SET avatar_picture = #{headUrl}
+        WHERE user_id = #{userId}
+    </update>
 
 </mapper>

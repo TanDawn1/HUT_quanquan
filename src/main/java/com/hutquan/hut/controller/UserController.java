@@ -6,7 +6,9 @@ import com.hutquan.hut.vo.EnumStatus;
 import com.hutquan.hut.vo.ResponseBean;
 import com.hutquan.hut.vo.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -21,6 +23,7 @@ public class UserController {
 
     /**
      * 通过Id查询用户数据
+     * 测试用
      * @param userId
      * @return
      */
@@ -76,5 +79,49 @@ public class UserController {
     @GetMapping("/user/out")
     public void out(HttpServletRequest request){
         request.getSession().removeAttribute("user");
+    }
+
+    /**
+     * 更新资料
+     * @param user
+     * @param request
+     * @return
+     */
+    @PostMapping("/user/updata")
+    public ResponseBean updataUser(@RequestBody User user, HttpServletRequest request){
+        User user1 = (User) request.getSession().getAttribute("user");
+        if(user1 != null) {
+            if (iUserService.updataUser(user)) {
+                return new ResponseBean(200, "ok", null);
+            } else {
+                return new ResponseBean(400, "ok", null); //错误
+            }
+        }else{
+            return new ResponseBean(300,"fail",null); //未登录
+        }
+    }
+
+    /**
+     * 更新头像
+     * @param
+     * @param request
+     * @return
+     */
+    @PostMapping("/user/upheadphoto")
+    public ResponseBean updataHeadPhoto(@RequestParam("multipartfile") MultipartFile file, HttpServletRequest request){
+        if(file.isEmpty()){
+            return new ResponseBean(400,"fail,文件上传失败",null);
+        }
+        User user1 = (User) request.getSession().getAttribute("user");
+        if(user1 != null) {
+            String url = iUserService.updataHeadPhoto(user1,file);
+            if(url != null){
+                return new ResponseBean(200,"ok",url);
+            }else{
+                return new ResponseBean(500,"fail",null);
+            }
+        }else{
+            return new ResponseBean(300,"fail，未登录",null); //未登录
+        }
     }
 }
