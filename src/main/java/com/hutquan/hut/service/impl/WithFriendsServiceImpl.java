@@ -1,11 +1,13 @@
 package com.hutquan.hut.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.hutquan.hut.mapper.IWithFriensMapper;
 import com.hutquan.hut.pojo.Dynamic;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IWithFriendsService;
+import com.hutquan.hut.utils.FileUtil;
 import com.hutquan.hut.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -27,6 +30,10 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     private static final String LIKE = "like:";
 
     private static final String FLLOW = "fllow:";
+
+    private static final String STAR = "star:";
+
+    private static final String SELFFOLLOW = "selfFollow:";
 
     @Autowired
     private IWithFriensMapper iWithFriensMapper;
@@ -75,12 +82,12 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
 
         List<String> photoDir = new ArrayList<>();
         for(int i = 0; i < list.size(); i++) {
-            list.get(i).setImagesList(JSON.parseArray(list.get(i).getImages(), String.class));
+            //list.get(i).setImagesList(JSON.parseArray(list.get(i).getImages(), String.class));
 //            for(String image: list.get(i).getImagesList()){
 //                photoDir.add(image);
 //            }
 //            list.get(i).setImagesList(photoDir);
-            list.get(i).setLikeSum(redisUtils.zscore("Dynamic", list.get(i).getDynamicId()));
+            //list.get(i).setLikeSum(redisUtils.zscore("Dynamic", list.get(i).getDynamicId()));
             list.get(i).setImages(null);
             //判断用户是否给该动态点赞
             list.get(i).setLike(redisUtils.sHasKey(userID,list.get(i).getDynamicId()));
@@ -100,34 +107,30 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      * @return
      */
     @Override
-    public PageInfo<Dynamic> condynamic(int pageNum, int pageSize, HttpServletRequest request) {
-        User user = (User) request.getSession().getAttribute("user");
-        String userID = LIKE +user.getUserId();
-        if(redisUtils.sCard(FLLOW +user.getUserId()) > 0){
-            Set<Object> idSet = redisUtils.sGet(FLLOW +user.getUserId());
+    public PageInfo<Dynamic> condynamic(int pageNum, int pageSize, User user) {
 
-            List<Object> idList = new ArrayList<Object>(idSet);
-            System.out.println(idList);
+        //String userID = LIKE +user.getUserId();
+        List<Object>  idList = redisUtils.lGet(SELFFOLLOW + user.getUserId(),0, -1);
+
+        if(idList.size() > 0){
+            //使用PageHelper分页
+            PageHelper.startPage(pageNum, pageSize);
 
             List<Dynamic> list = iWithFriensMapper.condynamic(idList);
+            for(Dynamic dynamic : list) {
+                //为了提升效率，所以starCount和commentCount都是在Redis中保存的
+                //starCount
+                dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
+                //commentCount
+                dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
 
-            List<String> photoDir = new ArrayList<>();
-            for(int i = 0; i < list.size(); i++) {
-                list.get(i).setImagesList(JSON.parseArray(list.get(i).getImages(), String.class));
-//            for(String image: list.get(i).getImagesList()){
-//                photoDir.add(image);
-//            }
-//            list.get(i).setImagesList(photoDir);
-                list.get(i).setLikeSum(redisUtils.zscore("Dynamic", list.get(i).getDynamicId()));
-                list.get(i).setImages(null);
-                //判断用户是否给该动态点赞
-                list.get(i).setLike(redisUtils.sHasKey(userID,list.get(i).getDynamicId()));
-                //判断是否是自己的动态
-                list.get(i).setSelf(list.get(i).getUserId() == user.getUserId());
+                if (user.getUserId() == dynamic.getUserId())
+                    dynamic.setSelf(true);
+                //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+                if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
+                    dynamic.setLike(true);
             }
-            PageInfo<Dynamic> page = new PageInfo<>(list);
-
-            return page;
+            return new PageInfo<>(list);
         }else {
             return null;
         }
@@ -167,39 +170,35 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      * 添加动态
      * @param user
      * @param dynamic
-     * @param file
+     * @param
      * @return
      */
     @Override
-    public boolean addDynamic(User user, Dynamic dynamic, List<MultipartFile> file) {
+    public boolean addDynamic(User user, Dynamic dynamic, MultipartFile[] files) {
         String newFileName = null;
-        List<String> dynamicPhotos = null;
-        if(!file.isEmpty()){
-            dynamicPhotos = new ArrayList<>();
-            for(int i = 0; i < file.size(); i++) {
-                String originalFileName = file.get(i).getOriginalFilename();
-                newFileName = UUID.randomUUID() + "-user" + user.getUserId()
-                        + "-dy" + dynamic.getDynamicId() + originalFileName.substring(originalFileName.lastIndexOf("."));
-                File newfile = new File(dynamicPhoto + newFileName);
-                dynamicPhotos.add(newFileName);
-                try {
-                    file.get(i).transferTo(newfile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-            }
-        }
-        dynamic.setTime(LocalDateTime.now());
-        dynamic.setImages(JSON.toJSONString(dynamicPhotos));
-        dynamic.setUserId(user.getUserId());
+        String dynamicPhotos = null;
+        //上传了图片
+        if(files != null){
+            //上传图片
+            dynamicPhotos = FileUtil.fileUpload(user.getUserId(),files,1);
 
-        if(1 == iWithFriensMapper.addDynamic(dynamic)){
-            redisUtils.zAdd("Dynamic",dynamic.getDynamicId(),0);
-            return true;
-        }else{
-            return false;
+            if(dynamicPhotos.equals("")) return false;
         }
+        dynamic.setImages(dynamicPhotos);
+        //时间戳 秒级
+        dynamic.setTime(Instant.now().getEpochSecond());
+        dynamic.setUserId(user.getUserId());
+        //判断受影响的行数是否为1 不为1则return false
+        if(iWithFriensMapper.addDynamic(dynamic) == 1){
+            //在Redis中添加相应的字段
+            //与点赞条数的对应关系
+            redisUtils.zAdd("dynamic_like",dynamic.getDynamicId(),0D);
+            //与评论条数的对应关系
+            redisUtils.hset("dynamic_comment","d" + dynamic.getDynamicId(),0);
+
+            return true;
+        }
+        return false;
 
     }
 
@@ -219,4 +218,31 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
         }
         return false;
     }
+
+    /**
+     * 热点动态
+     * @param user
+     * @return
+     */
+    @Override
+    public List<Dynamic> dynamicsByHot(User user) {
+        //查找动态表中排名靠前的动态ID，一页20条
+        Set<Object> idSet = redisUtils.zRevrange("dynamic_like",0L,19L);
+        List<Dynamic> list = iWithFriensMapper.dynamicsByHot(idSet);
+        for(Dynamic dynamic: list){
+            //为了提升效率，所以starCount和commentCount都是在Redis中保存的
+            //starCount
+            dynamic.setStarCount(redisUtils.zscore("dynamic_like",dynamic.getDynamicId()).intValue());
+            //commentCount
+            dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment","d"+dynamic.getDynamicId()));
+            if(user != null){
+                if(user.getUserId() == dynamic.getUserId()) dynamic.setSelf(true);
+                //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+                if(redisUtils.zscore(STAR+user.getUserId(),dynamic.getDynamicId()) != null) dynamic.setLike(true);
+            }
+        }
+        return  list;
+    }
+
+
 }

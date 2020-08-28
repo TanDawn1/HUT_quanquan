@@ -18,7 +18,7 @@
 
     <!--parameterType(输入类型)、resultType(输出类型)-->
     <select id="selectUser" parameterType="int" resultType="com.hutquan.hut.pojo.User">
-        SELECT * FROM `user` WHERE  `user_id` = #{userId}
+        SELECT username,avatar_picture,`time`,sex FROM `user` WHERE  `user_id` = #{userId}
     </select>
 
     <select id="teleSelectUser" resultType="Integer">
@@ -38,9 +38,14 @@
         WHERE passwd = #{passwd} AND account = #{account}
     </select>
 
+    <select id="logina" parameterType="string" resultType="com.hutquan.hut.pojo.User">
+         SELECT * FROM `user`
+        WHERE account = #{account}
+    </select>
+
     <select id="teleLogin" resultType="com.hutquan.hut.pojo.User">
-         SELECT user_id,stu_number,username,account,signature,followers,tele,sex,`time` FROM `user`
-         WHERE  tele_tem.tele = #{tele}
+         SELECT user_id,username,tele,signature,sex,`time`,avatar_picture FROM `user`
+         WHERE  tele = #{tele}
     </select>
 
     <insert id="insertTele">
@@ -70,5 +75,14 @@
         UPDATE `user` SET avatar_picture = #{headUrl}
         WHERE user_id = #{userId}
     </update>
+
+    <select id="queryFollower" resultType="com.hutquan.hut.pojo.Follower">
+        SELECT user_id,tele,username,avatar_picture,signature,sex FROM `user`
+        WHERE user_id
+        in
+        <foreach collection ="collection" item = "idList" open = "(" close=")" separator=",">
+            #{idList}
+        </foreach>
+    </select>
 
 </mapper>

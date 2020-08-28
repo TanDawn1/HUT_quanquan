@@ -17,6 +17,7 @@ spring:
         min-idle: 0
         max-wait: 6000ms
         max-idle: 8
+    password: redis123.
 
   datasource:
     username: root

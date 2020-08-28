@@ -5,10 +5,10 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 用户表
+ * 关注者
  */
 @Data
-public class User implements Serializable {
+public class Follower implements Serializable {
 
     private Integer userId;
 
@@ -23,10 +23,5 @@ public class User implements Serializable {
     private String signature;
 
     private String sex;
-
-    private Long time;
-
-    //附近的人-> 距离字段
-    private Double distance;
 
 }

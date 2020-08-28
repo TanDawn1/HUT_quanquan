@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--你接口的包名是com.abc.dao,接口名是NameMapper.java，那么你的mapper.xml的namespace应该是com.abc.dao.NameMapper-->
+<mapper namespace="com.hutquan.hut.mapper.IGeoFriendsCircleMapper" >
+    <!--    resultMap对应的是表与实体类的映射  - type 数据库表对应的实体类，别名或完整类名都可以-->
+    <resultMap id="Dynamics" type="com.hutquan.hut.pojo.Dynamic" >
+        <!-- 结果集的主键 -->
+        <id column="dynamic_id" property="dynamicId" jdbcType="INTEGER" />
+        <!-- 普通的列  -column 是数据库中字段， property是实体类中字段-->
+        <result column="message" property="message" jdbcType="VARCHAR" />
+        <result column="user_id" property="userId" jdbcType="INTEGER" />
+        <result column="time" property="time" jdbcType="INTEGER" />
+        <result column="images" property="images" jdbcType="VARCHAR" />
+        <result column="label" property="label" jdbcType="VARCHAR"/>
+        <association property="user" javaType="com.hutquan.hut.pojo.User">
+            <id column="user_id" property="userId" jdbcType="INTEGER" />
+            <!-- 普通的列  -column 是数据库中字段， property是实体类中字段-->
+            <result column="avatar_picture" property="avatarPicture" jdbcType="VARCHAR" />
+            <result column="username" property="username" jdbcType="VARCHAR" />
+        </association>
+    </resultMap>
+
+    <select id="nearybyDynamic" resultMap="Dynamics" parameterType="arraylist">
+        SELECT dynamic.* ,`user`.sex,`user`.avatar_picture,`user`.username FROM `dynamic`
+        JOIN `user` ON dynamic.user_id = `user`.user_id
+        WHERE dynamic.user_id in
+        <foreach item="idlist" index="index" collection="list" open="("
+                 separator="," close=")">
+            #{idlist}
+        </foreach>
+        ORDER BY `time` DESC
+    </select>
+
+</mapper>

@@ -4,6 +4,7 @@ import com.hutquan.hut.pojo.Dynamic;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 校园交友模块
@@ -18,5 +19,7 @@ public interface IWithFriensMapper {
     List<Dynamic> condynamic(List<Object> idList);
 
     int addDynamic(Dynamic dynamic);
+
+    List<Dynamic> dynamicsByHot(Set<Object> idSet);
 
 }

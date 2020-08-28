@@ -2,30 +2,40 @@ package com.hutquan.hut.pojo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.omg.CORBA.INTERNAL;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 动态表
+ */
 @Data
 public class Dynamic implements Serializable {
 
-    private User user;
-
-    private int dynamicId;
+    private Integer dynamicId;
 
     private String message;
 
-    private Double likeSum;
+    private Integer userId;
 
-    private int userId;
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime time;
+    private Long time;
 
     private String images;
 
-    private List<String> imagesList;
+    //private List<String> imagesList;
+
+    private String label;
+
+    private Integer starCount;
+
+    private Integer commentCount;
+
+    private User user;
+
+    //附近的人-> 距离字段
+    private Double distance;
 
     //是否已经点赞
     private boolean like;

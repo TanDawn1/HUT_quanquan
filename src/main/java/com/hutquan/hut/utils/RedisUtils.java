@@ -5,7 +5,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import com.hutquan.hut.pojo.GeoMemberAndRadius;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.ReactiveListCommands;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -111,7 +119,7 @@ public class RedisUtils {
      * @param time 时间(秒) time要大于0 如果time小于等于0 将设置无限期 
      * @return true成功 false 失败 
      */
-    public boolean set(String key,Object value,long time){
+    public boolean set(String key,Object value,Long time){
         try {
             if(time>0){
                 redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
@@ -583,4 +591,54 @@ public class RedisUtils {
     public boolean zAdd(String key,Object member,double score){
         return redisTemplate.opsForZSet().add(key,member,score);
     }
+
+    /**
+     * 查询Zset集合中的值
+     * @param key
+     * @param l
+     * @param l1
+     * @return
+     */
+    public Set<Object> zRange(String key, Long l, Long l1 ){
+        return redisTemplate.opsForZSet().range(key,l,l1);
+    }
+
+    /**
+     * 倒序查询set集合中的值
+     * @param key
+     * @param l
+     * @param l1
+     * @return
+     */
+    public Set<Object> zRevrange(String key, Long l, Long l1){
+        return redisTemplate.opsForZSet().reverseRange(key,l,l1);
+    }
+
+    /**
+     * @Title: geoAdd
+     * @param key key
+     * @param point 经纬度
+     * @param member 成员
+     * @return Long 返回影响的行
+     */
+    public Long geoAdd(String key, Point point, String member) {
+        return redisTemplate.opsForGeo().add(key,point,member);
+    }
+
+    /**
+     *
+     * @param key  值
+     * @param member 成员
+     * @param radius 距离
+     * @return
+     */
+   public GeoResults<RedisGeoCommands.GeoLocation<Object>> georadiusbymember(String key, String member, Double radius){
+       //以KM作为基本单位 结果包含key,ditance
+      return redisTemplate.opsForGeo().radius(key,member,
+               new Distance(radius,Metrics.KILOMETERS),
+               RedisGeoCommands.GeoRadiusCommandArgs.
+                       newGeoRadiusArgs().sortDescending().includeDistance());
+   }
+
+
 }

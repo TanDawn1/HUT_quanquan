@@ -5,6 +5,7 @@ import com.hutquan.hut.service.IUserService;
 import com.hutquan.hut.vo.EnumStatus;
 import com.hutquan.hut.vo.ResponseBean;
 import com.hutquan.hut.vo.UserStatus;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/user/selectuser")
+    @ApiOperation("测试用")
     public UserStatus selectUser(@RequestParam int userId){
         System.out.println(userId);
         try {
@@ -45,6 +47,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/user/res")
+    @ApiOperation("注册")
     public ResponseBean res(@RequestBody User user){
         //TODO 输入了手机号应该验证一遍
         int useId = iUserService.insertUser(user);
@@ -62,6 +65,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/user/login")
+    @ApiOperation("登录")
     public ResponseBean login(@RequestBody User user, HttpServletRequest request){
         User user1 = iUserService.login(user);
         if(user1 != null) {
@@ -73,10 +77,22 @@ public class UserController {
     }
 
     /**
+     * 未登录
+     * @return
+     */
+    @GetMapping("/nologin")
+    @ApiOperation("未登录")
+    public ResponseBean loginPage() {
+        return new ResponseBean(400,"未登录",null);
+    }
+
+
+    /**
      * 退出登录
      * @return
      */
     @GetMapping("/user/out")
+    @ApiOperation("退出登录")
     public void out(HttpServletRequest request){
         request.getSession().removeAttribute("user");
     }
@@ -88,6 +104,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/user/updata")
+    @ApiOperation("更新资料")
     public ResponseBean updataUser(@RequestBody User user, HttpServletRequest request){
         User user1 = (User) request.getSession().getAttribute("user");
         if(user1 != null) {
@@ -108,6 +125,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/user/upheadphoto")
+    @ApiOperation("更新头像")
     public ResponseBean updataHeadPhoto(@RequestParam("multipartfile") MultipartFile file, HttpServletRequest request){
         if(file.isEmpty()){
             return new ResponseBean(400,"fail,文件上传失败",null);
@@ -123,5 +141,18 @@ public class UserController {
         }else{
             return new ResponseBean(300,"fail，未登录",null); //未登录
         }
+    }
+
+    /**
+     * 查看关注的用户
+     */
+    @GetMapping("/user/follower")
+    @ApiOperation("查看的关注的用户")
+    public ResponseBean queryFollower(HttpServletRequest request){
+        User user = (User) request.getSession().getAttribute("user");
+        if(user == null){
+            return new ResponseBean(400,"fail,未登录",null);
+        }
+        return new ResponseBean(200,"success",iUserService.queryFollower(user.getUserId(),0L,-1L));
     }
 }

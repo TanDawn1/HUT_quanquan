@@ -5,16 +5,16 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 动态评论表
+ * 寻物评论表
  */
 @Data
-public class Comment implements Serializable {
+public class SearchComment implements Serializable {
 
-    private Integer commentId;
+    private Integer searchCId;
+
+    private Integer sId;
     //评论
     private String message;
-
-    private Integer dynamicId;
 
     private Integer userId;
 

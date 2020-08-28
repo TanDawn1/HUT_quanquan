@@ -36,7 +36,8 @@ public class TeleServiceImpl implements ITeleService {
     @Override
     public User teleLogin(String tele, String yzm) {
         //先判断Redis中的yzm是否正确,正确返回User数据
-        if(redisUtils.get("yzm:"+tele).equals(yzm)){
+        String yzmRedis = (String) redisUtils.get(tele);
+        if(yzmRedis != null && yzmRedis.equals(yzm)){
             return iUserMapper.teleLogin(tele);
         }else {
             return null;
@@ -55,7 +56,7 @@ public class TeleServiceImpl implements ITeleService {
 
 //        iUserMapper.insertTele(tele, code, LocalDateTime.now());
         //把验证码存入redis数据库 如果存在就更新 5min过期
-        redisUtils.set(teleR,code,300);
+        redisUtils.set(teleR,code,300L);
         System.out.println("验证码是" + code);
         //userDAO.saveYZM(tele, code);
         Map<String, String> headers = new HashMap<String, String>();

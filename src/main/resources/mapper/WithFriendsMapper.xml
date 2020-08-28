@@ -10,14 +10,14 @@
             <!-- 普通的列  -column 是数据库中字段， property是实体类中字段-->
             <result column="message" property="message" jdbcType="VARCHAR" />
             <result column="user_id" property="userId" jdbcType="INTEGER" />
-            <result column="time" property="time" jdbcType="TIMESTAMP" />
+            <result column="time" property="time" jdbcType="INTEGER" />
             <result column="images" property="images" jdbcType="VARCHAR" />
+            <result column="label" property="label" jdbcType="VARCHAR"/>
             <association property="user" javaType="com.hutquan.hut.pojo.User">
                 <id column="user_id" property="userId" jdbcType="INTEGER" />
                 <!-- 普通的列  -column 是数据库中字段， property是实体类中字段-->
                 <result column="avatar_picture" property="avatarPicture" jdbcType="VARCHAR" />
                 <result column="username" property="username" jdbcType="VARCHAR" />
-                <result column="sex" property="sex" jdbcType="VARCHAR" />
             </association>
         </resultMap>
 
@@ -38,12 +38,21 @@
                                                              separator="," close=")">
                 #{idlist}
         </foreach>
-     ORDER BY 'time' DESC
+     ORDER BY `time` DESC
     </select>
 
     <insert id="addDynamic" parameterType="com.hutquan.hut.pojo.Dynamic" useGeneratedKeys="true" keyProperty="dynamicId">
-        INSERT INTO dynamic(message,user_id,`time`,images) VALUES (#{message},#{userId},#{time},#{images})
+        INSERT INTO dynamic(message,user_id,`time`,images,label) VALUES (#{message},#{userId},#{time},#{images},#{label})
     </insert>
+
+    <select id="dynamicsByHot" resultMap="Dynamics">
+        SELECT dynamic.*,`user`.avatar_picture,`user`.username FROM dynamic,`user`
+        WHERE dynamic.user_id = `user`.user_id AND
+        dynamic_id in
+        <foreach collection="collection" item="idSet" open="(" separator="," close=")">
+           #{idSet}
+        </foreach>
+    </select>
 
 
 </mapper>

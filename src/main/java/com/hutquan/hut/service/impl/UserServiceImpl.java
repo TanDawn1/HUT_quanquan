@@ -1,19 +1,21 @@
 package com.hutquan.hut.service.impl;
 
-import com.hutquan.hut.config.RedisLettuce;
 import com.hutquan.hut.mapper.IUserMapper;
+import com.hutquan.hut.pojo.Follower;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IUserService;
 import com.hutquan.hut.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -21,6 +23,8 @@ public class UserServiceImpl implements IUserService {
 
     @Value("${upload.headPortrait.dir}")
     private  String headPhoto;
+
+    private static final String FOLLOW = "follow:";
 
     @Autowired
     private IUserMapper iUserMapper;
@@ -35,9 +39,9 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public int insertUser(User user) {
-        user.setTime(LocalDateTime.now());
+        user.setTime(Instant.now().getEpochSecond());
         //存在相同手机号或者相同账号就return 0
-        if(iUserMapper.selectTele(user.getTele(),user.getAccount()) != null){
+        if(iUserMapper.selectTele(user.getTele(),user.getTele()) != null){
             return 0;
         }else{
             //返回主键的值
@@ -82,6 +86,15 @@ public class UserServiceImpl implements IUserService {
             e.printStackTrace();
             return null;
         }
-
     }
+
+    @Override
+    public List<Follower> queryFollower(Integer userId, Long l, Long l1) {
+
+        Set<Object> followId = redisUtils.zRange(FOLLOW+userId,l, l1);
+
+        return iUserMapper.queryFollower(followId);
+    }
+
+
 }
