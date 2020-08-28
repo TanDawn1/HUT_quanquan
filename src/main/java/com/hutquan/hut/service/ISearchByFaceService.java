@@ -11,4 +11,8 @@ public interface ISearchByFaceService {
     List<UserSearchFace> searchFaces(MultipartFile face);
 
     Object  searchFaces1(MultipartFile face);
+
+    boolean createFace(User user, MultipartFile[] photo);
+
+    String viewSelfFace(User user);
 }

@@ -1,19 +1,19 @@
 package com.hutquan.hut.service.impl;
 
 import com.hutquan.hut.mapper.ISearchByFaceMapper;
+import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.pojo.UserSearchFace;
 import com.hutquan.hut.service.ISearchByFaceService;
+import com.hutquan.hut.utils.FileUtil;
 import com.hutquan.hut.utils.MyMiniUtils;
+import com.hutquan.hut.utils.RedisUtils;
 import com.hutquan.hut.utils.UserFaceUtils;
-import com.tencentcloudapi.iai.v20180301.models.Candidate;
-import com.tencentcloudapi.iai.v20180301.models.Result;
-import com.tencentcloudapi.iai.v20180301.models.SearchFacesResponse;
+import com.tencentcloudapi.iai.v20180301.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -24,6 +24,9 @@ public class SearchByFaceServiceImpl implements ISearchByFaceService {
 
     @Autowired
     private UserFaceUtils userFaceUtils;
+
+    @Autowired
+    private RedisUtils redisUtils;
 
     /**
      * 人脸匹配接口
@@ -106,12 +109,50 @@ public class SearchByFaceServiceImpl implements ISearchByFaceService {
         }
     }
 
+    @Override
+    public boolean createFace(User user, MultipartFile[] photo) {
+        if(user.getUserId() == null) return false;
+        if(photo == null) return false;
+        String fileBase64 = null;
+        try {
+            //腾讯接口需要 Base64编码 将MultipatrFile转为Base64编码
+            fileBase64 = MyMiniUtils.multipartFileToBase64(photo[0]);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        //获取人员库ID,腾讯充钱解锁十万个人员库
+        List<Integer> groups = iSearchByFaceMapper.selectGroupId();
+        //上传人脸图片到自己数据库
+        String image = FileUtil.fileUpload(user.getUserId(),photo,3);
+        if(image.equals("")) return false;
+        List<String> list = (List<String>) redisUtils.hget("faceImage",user.getUserId().toString());
+        if(list != null) return false;
+        redisUtils.hset("faceImage",user.getUserId().toString(),image);
+        //将人员和人脸数据上传腾讯云
+        //判断性别
+        int sex = 0;
+        if(user.getSex().equals("男")) sex = 1;
+        CreatePersonResponse resp = userFaceUtils.CreateFace(user.getUserId()+"",user.getUsername(), sex, groups.get(0).toString(),fileBase64);
+        if (resp == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String viewSelfFace(User user) {
+        //有且只有一张图片
+        redisUtils.hget("faceImage",user.getUserId().toString());
+        //if(list == null) return null;
+        return (String) redisUtils.hget("faceImage",user.getUserId().toString());
+    }
+
     /**
      *
      * @param list 原 list
      * @param list1 新 list
      * @param candidate 数据
-     * @param i 在candidates中的位置
      * @return
      */
     public void binarySearch(List<UserSearchFace> list,
