@@ -33,7 +33,7 @@ public interface IUserMapper {
     User teleLogin(String tele);
 
     int insertTele(String tele, String yzm, LocalDateTime time);
-    //电话、密码、账号、注册时间、头像不能在此修改
+    //统一更新个人资料的接口
     int updataUser(User user);
 
     int upHeadUrl(String headUrl,int userId);

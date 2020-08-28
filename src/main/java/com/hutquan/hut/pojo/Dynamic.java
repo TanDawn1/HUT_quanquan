@@ -1,12 +1,8 @@
 package com.hutquan.hut.pojo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.omg.CORBA.INTERNAL;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 动态表

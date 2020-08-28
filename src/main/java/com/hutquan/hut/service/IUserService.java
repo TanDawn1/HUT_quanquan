@@ -5,7 +5,6 @@ import com.hutquan.hut.pojo.User;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Set;
 
 public interface IUserService {
 

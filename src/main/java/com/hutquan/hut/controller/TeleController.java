@@ -7,6 +7,7 @@ import com.hutquan.hut.vo.EnumStatus;
 import com.hutquan.hut.vo.ResponseBean;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,9 +33,9 @@ public class TeleController {
      * @param tele
      * @return
      */
-    @PostMapping("/tele/yzm")
+    @PostMapping("/tele/yzm/{tele}")
     @ApiOperation("发送验证码")
-    public ResponseBean yzmSend(@RequestBody String tele){
+    public ResponseBean yzmSend(@PathVariable("tele") String tele){
         if(iTeleService.selectUser(tele)){
             return new ResponseBean(
                     Integer.valueOf(iTeleService.sendTele(tele).substring(16,21)),
@@ -57,14 +58,15 @@ public class TeleController {
 
         User user = iTeleService.teleLogin(tele,yzm);
         if(user != null) {
-            //request.getSession().setAttribute("user", user);
+            //生成token
             String token = UUID.randomUUID() + "";
             //把token存储到Redis   30min
             redisUtils.set(token,user, 30 * 60L);
-            //用户位置存储到Redis
-//            redisUtils
+            if(!user.getPasswd().equals("")){
+                //2001 说明是新用户
+                return new ResponseBean(2001,token,user);
+            }
             return new ResponseBean(200,token,user);
-
         }else{
             return new ResponseBean(400,"验证码错误",null);
         }

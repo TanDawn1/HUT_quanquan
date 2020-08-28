@@ -2,16 +2,17 @@ package com.hutquan.hut.controller;
 
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IUserService;
+import com.hutquan.hut.utils.RedisUtils;
 import com.hutquan.hut.vo.EnumStatus;
 import com.hutquan.hut.vo.ResponseBean;
 import com.hutquan.hut.vo.UserStatus;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 /**
  * 账号相关
@@ -21,6 +22,9 @@ public class UserController {
 
     @Autowired
     private IUserService iUserService;
+
+    @Autowired
+    private RedisUtils redisUtils;
 
     /**
      * 通过Id查询用户数据
@@ -47,17 +51,18 @@ public class UserController {
      * @return
      */
     @PostMapping("/user/res")
-    @ApiOperation("注册")
+    @ApiOperation("注册 -> 该接口已弃用")
     public ResponseBean res(@RequestBody User user){
         //TODO 输入了手机号应该验证一遍
         int useId = iUserService.insertUser(user);
         if(useId == 1){
-            return new ResponseBean(EnumStatus.SUCCESS.getCode(),EnumStatus.SUCCESS.getMessage(),null);
+            return new ResponseBean(200,"弃用的接口",null);
         }else if(useId == 0){
-            return new ResponseBean(EnumStatus.Repetition.getCode(),EnumStatus.Repetition.getMessage(),null);
+            return new ResponseBean(200,"弃用的接口",null);
         }
-        return new ResponseBean(EnumStatus.Fail.getCode(),EnumStatus.Fail.getMessage(),null);
+        return new ResponseBean(200,"弃用的接口",null);
     }
+
 
     /**
      * 登录
@@ -69,10 +74,13 @@ public class UserController {
     public ResponseBean login(@RequestBody User user, HttpServletRequest request){
         User user1 = iUserService.login(user);
         if(user1 != null) {
-            request.getSession().setAttribute("user", user1);
-            return new ResponseBean(EnumStatus.SUCCESS.getCode(),EnumStatus.SUCCESS.getMessage(),user1);
+            //request.getSession().setAttribute("user", user);
+            String token = UUID.randomUUID() + "";
+            //把token存储到Redis   30min
+            redisUtils.set(token,user1, 30 * 60L);
+            return new ResponseBean(200,"ok",user1);
         }else{
-            return new ResponseBean(EnumStatus.Fail.getCode(),EnumStatus.Fail.getMessage(),null);
+            return new ResponseBean(200,"密码或者账号错误",null);
         }
     }
 
@@ -106,10 +114,16 @@ public class UserController {
     @PostMapping("/user/updata")
     @ApiOperation("更新资料")
     public ResponseBean updataUser(@RequestBody User user, HttpServletRequest request){
-        User user1 = (User) request.getSession().getAttribute("user");
+        User user1 = (User) redisUtils.get(request.getHeader("token"));
         if(user1 != null) {
             if (iUserService.updataUser(user)) {
-                return new ResponseBean(200, "ok", null);
+                //更新Redis中的数据  对user1和user进行对比
+                if(!user.getSex().equals(user1.getSex()) && user.getSex() != null) user1.setSex(user.getSex());
+                if(!user.getUsername().equals(user1.getUsername()) && user.getUsername() != null) user1.setUsername(user.getUsername());
+                if(!user.getSignature().equals(user1.getSignature()) && user.getSignature() != null) user1.setSignature(user.getSignature());
+                //刷新token对应的user数据
+                redisUtils.set(request.getHeader("token"),user1);
+                return new ResponseBean(200, "ok", user1);
             } else {
                 return new ResponseBean(400, "ok", null); //错误
             }
@@ -130,7 +144,7 @@ public class UserController {
         if(file.isEmpty()){
             return new ResponseBean(400,"fail,文件上传失败",null);
         }
-        User user1 = (User) request.getSession().getAttribute("user");
+        User user1 = (User) redisUtils.get(request.getHeader("token"));
         if(user1 != null) {
             String url = iUserService.updataHeadPhoto(user1,file);
             if(url != null){

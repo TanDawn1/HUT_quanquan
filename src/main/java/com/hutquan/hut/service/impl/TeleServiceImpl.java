@@ -11,9 +11,11 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class TeleServiceImpl implements ITeleService {
@@ -38,7 +40,25 @@ public class TeleServiceImpl implements ITeleService {
         //先判断Redis中的yzm是否正确,正确返回User数据
         String yzmRedis = (String) redisUtils.get(tele);
         if(yzmRedis != null && yzmRedis.equals(yzm)){
-            return iUserMapper.teleLogin(tele);
+            User user = iUserMapper.teleLogin(tele);
+            if(user == null){
+                //如果user为null，说明是个新用户,则注册一个
+                user = new User();
+                //注册时间
+                user.setTime(Instant.now().getEpochSecond());
+                //用户名就用tele，需要后续修改
+                user.setUsername(tele);
+                //随机生成密码
+                user.setPasswd(UUID.randomUUID().toString());
+                //默认头像
+                user.setAvatarPicture("default.jpg");
+                if(iUserMapper.insertUser(user) != 1) {
+                    Exception e = new Exception();
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+            return user;
         }else {
             return null;
         }

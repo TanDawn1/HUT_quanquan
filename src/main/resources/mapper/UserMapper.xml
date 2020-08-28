@@ -26,7 +26,7 @@
     </select>
 
     <insert id="insertUser" parameterType="com.hutquan.hut.pojo.User" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO `user`(account,passwd,followers,tele,sex,`time`) VALUES (#{account},#{passwd},0,#{tele},#{sex},#{time})
+        INSERT INTO `user`(username,passwd,tele,`time`,avatar_picture) VALUES (#{username},#{passwd},0,#{tele},#{time},#{avatarPicture})
     </insert>
 
     <select id="selectTele" parameterType="String" resultType="Integer">
@@ -34,7 +34,7 @@
     </select>
 
     <select id="login" parameterType="com.hutquan.hut.pojo.User" resultType="com.hutquan.hut.pojo.User">
-        SELECT user_id,stu_number,username,account,signature,followers,tele,sex,`time` FROM `user`
+        SELECT user_id,username,tele,signature,sex,avatar_picture FROM `user`
         WHERE passwd = #{passwd} AND account = #{account}
     </select>
 
@@ -55,17 +55,20 @@
 
     <update id="updataUser" parameterType="com.hutquan.hut.pojo.User">
         UPDATE `user` SET
-        <if test="stu_number != null">
-            stu_number = #{stuNumber},
-        </if>
         <if test="user_name != null">
             user_name = #{username},
         </if>
         <if test="signature != null">
             signature = #{signature},
         </if>
+        <if test="avatar_picture != null">
+            avatar_picture = #{avatarPicture},
+        </if>
         <if test="sex != null">
             sex = #{sex},
+        </if>
+        <if test="passwd != null">
+            passd = #{passwd},
         </if>
         1 = 1
         WHERE user_id = #{userId}
