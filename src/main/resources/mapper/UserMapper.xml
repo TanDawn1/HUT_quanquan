@@ -43,7 +43,7 @@
         WHERE account = #{account}
     </select>
 
-    <select id="teleLogin" resultType="com.hutquan.hut.pojo.User">
+    <select id="teleLogin" resultType="com.hutquan.hut.pojo.User" >
          SELECT user_id,username,tele,signature,sex,`time`,avatar_picture FROM `user`
          WHERE  tele = #{tele}
     </select>

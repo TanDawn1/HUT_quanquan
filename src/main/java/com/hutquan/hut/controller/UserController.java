@@ -78,6 +78,8 @@ public class UserController {
             String token = UUID.randomUUID() + "";
             //把token存储到Redis   30min
             redisUtils.set(token,user1, 30 * 60L);
+            //存储token与账号对应关系
+            redisUtils.hset("userToken",user1.getUserId().toString(),token);
             return new ResponseBean(200,"ok",user1);
         }else{
             return new ResponseBean(200,"密码或者账号错误",null);

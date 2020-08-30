@@ -37,7 +37,7 @@ public class RedisUtils {
     public boolean expire(String key,long time){
         try {
             if(time>0){
-                redisTemplate.expire(key, time, TimeUnit.SECONDS);
+                redisTemplate.expire(key, time, TimeUnit.MINUTES);
             }
             return true;
         } catch (Exception e) {
@@ -52,6 +52,7 @@ public class RedisUtils {
      * @return 时间(秒) 返回0代表为永久有效 
      */
     public long getExpire(String key){
+        if(key.equals("")) return 0;
         return redisTemplate.getExpire(key,TimeUnit.SECONDS);
     }
 

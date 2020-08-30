@@ -80,6 +80,11 @@ public class LettuceRedis {
         3) 1) "g0"
         2) 1) "116.41231566667556763"
         2) "39.89279387941491706"*/
+    }
 
+    @Test
+    public void login(){
+        //System.out.println(redisUtils.hset("userToken","1","daedqfeqf"));
+        System.out.println(redisUtils.hget("userToken","1"));
     }
 }

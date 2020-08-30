@@ -60,8 +60,10 @@ public class TeleController {
         if(user != null) {
             //生成token
             String token = UUID.randomUUID() + "";
-            //把token存储到Redis   30min
-            redisUtils.set(token,user, 30 * 60L);
+            //把token存储到Redis   30day
+            redisUtils.set(token,user, 30 * 24 * 60 * 60L);
+            //存储token与账号对应关系
+            redisUtils.hset("userToken",user.getUserId().toString(),token);
             if(!user.getPasswd().equals("")){
                 //2001 说明是新用户
                 return new ResponseBean(2001,token,user);

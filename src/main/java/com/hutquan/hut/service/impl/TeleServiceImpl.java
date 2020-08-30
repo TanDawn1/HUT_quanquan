@@ -52,6 +52,7 @@ public class TeleServiceImpl implements ITeleService {
                 user.setPasswd(UUID.randomUUID().toString());
                 //默认头像
                 user.setAvatarPicture("default.jpg");
+                //会返回userId
                 if(iUserMapper.insertUser(user) != 1) {
                     Exception e = new Exception();
                     e.printStackTrace();
