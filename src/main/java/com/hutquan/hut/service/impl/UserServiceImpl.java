@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -94,6 +93,23 @@ public class UserServiceImpl implements IUserService {
         Set<Object> followId = redisUtils.zRange(FOLLOW+userId,l, l1);
 
         return iUserMapper.queryFollower(followId);
+    }
+
+    @Override
+    public Long querySelfFollow(User user) {
+
+        return redisUtils.llen(user.getUserId().toString());
+    }
+
+    @Override
+    public Long querySelfFollowed(User user) {
+        return redisUtils.zscard(user.getUserId().toString());
+    }
+
+    @Override
+    public Boolean followed(Integer user1Id, Integer user2Id) {
+        //判断用户1是否关注用户2 返回null则说明没有关注
+        return redisUtils.zscore(FOLLOW + user2Id, user1Id) != null;
     }
 
 

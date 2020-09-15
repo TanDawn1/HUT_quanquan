@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--你接口的包名是com.abc.dao,接口名是NameMapper.java，那么你的mapper.xml的namespace应该是com.abc.dao.NameMapper-->
+<mapper namespace="com.hutquan.hut.mapper.ICommentMapper" >
+
+    <insert id="insertDynamicComment" parameterType="com.hutquan.hut.pojo.Comment">
+        INSERT INTO comment(message,dynamic_id,`time`,user_id,to_user_id)
+        VALUES (#{message},#{dynamicId},#{time},#{userId},#{toUserId})
+    </insert>
+
+</mapper>

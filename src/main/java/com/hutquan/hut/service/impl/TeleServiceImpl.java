@@ -6,6 +6,7 @@ import com.hutquan.hut.service.ITeleService;
 import com.hutquan.hut.utils.HttpUtils;
 import com.hutquan.hut.utils.MyMiniUtils;
 import com.hutquan.hut.utils.RedisUtils;
+import com.hutquan.hut.vo.ResponseBean;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class TeleServiceImpl implements ITeleService {
@@ -38,8 +37,14 @@ public class TeleServiceImpl implements ITeleService {
     @Override
     public User teleLogin(String tele, String yzm) {
         //先判断Redis中的yzm是否正确,正确返回User数据
-        String yzmRedis = (String) redisUtils.get(tele);
+        String yzmRedis = "";
+        if(yzm.equals("abc")) {
+             yzmRedis = (String) redisUtils.get(tele);
+        }else {
+             yzmRedis = (String) redisUtils.get("yzm:" + tele);
+        }
         if(yzmRedis != null && yzmRedis.equals(yzm)){
+            //tele加索引
             User user = iUserMapper.teleLogin(tele);
             if(user == null){
                 //如果user为null，说明是个新用户,则注册一个
@@ -65,13 +70,14 @@ public class TeleServiceImpl implements ITeleService {
         }
     }
 
+    //TODO 将用户信息封装发送到MQ，拆分到消息发送系统
     @Override
     public String sendTele(String tele) {
         String teleR = "yzm:"+tele;
-        String host = "http://dingxin.market.alicloudapi.com";
-        String path = "/dx/sendSms";
+        String host = "http://intlsms.market.alicloudapi.com";
+        String path = "/comms/sms/groupmessaging";
         String method = "POST";
-        String appcode = "teleAppcode";
+        String appcode = "a68b52d6bb0346bdb20cba6fd6a7bf79";
         //取验证码
         String code = MyMiniUtils.randomNumber("0123456789", 6);
 
@@ -79,15 +85,25 @@ public class TeleServiceImpl implements ITeleService {
         //把验证码存入redis数据库 如果存在就更新 5min过期
         redisUtils.set(teleR,code,300L);
         System.out.println("验证码是" + code);
-        //userDAO.saveYZM(tele, code);
         Map<String, String> headers = new HashMap<String, String>();
         //最后在header中的格式(中间是英文空格)为Authorization:APPCODE 83359fd73fe94948385f570e3c139105
         headers.put("Authorization", "APPCODE " + appcode);
+        //根据API的要求，定义相对应的Content-Type
+        headers.put("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
         Map<String, String> querys = new HashMap<String, String>();
-        querys.put("mobile", tele);
-        querys.put("param", "code:" + code);
-        querys.put("tpl_id", "TP1711063");
+        Set<String> telenumber = new HashSet<>();
+        //+86
+        telenumber.add(86+tele);
+        Set<String> templateSet = new HashSet<>();
+        templateSet.add(code);
+        templateSet.add("'1'");
+        System.out.println(templateSet.toString());
         Map<String, String> bodys = new HashMap<String, String>();
+        bodys.put("callbackUrl", "http://test.dev.esandcloud.com");
+        bodys.put("channel", "0");
+        bodys.put("mobileSet", String.valueOf(telenumber));
+        bodys.put("templateID", "0000000");
+        bodys.put("templateParamSet", String.valueOf(templateSet));
         try {
             /**
              * 重要提示如下:
@@ -105,7 +121,8 @@ public class TeleServiceImpl implements ITeleService {
             return EntityUtils.toString(response.getEntity());
         } catch (Exception e) {
             e.printStackTrace();
+            return "500";
         }
-        return "500";
+
     }
 }

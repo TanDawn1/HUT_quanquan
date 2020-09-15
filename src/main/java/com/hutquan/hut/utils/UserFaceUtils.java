@@ -65,7 +65,7 @@ public class UserFaceUtils {
     }
 
     //删除人员数据
-    public DeleteFaceResponse DeletePerson(Integer uId, String faceIdList) {
+    public DeleteFaceResponse DeletePerson(Integer uId) {
         try {
             Credential cred = new Credential(secretId, sercretKey);
             HttpProfile httpProfile = new HttpProfile();
@@ -74,15 +74,13 @@ public class UserFaceUtils {
             clientProfile.setHttpProfile(httpProfile);
 
             IaiClient client = new IaiClient(cred,"", clientProfile);
-            Map map = new HashMap();
+            Map<String,Object> map = new HashMap<>();
             map.put("PersonId", uId);
 
             String params = JSON.toJSONString(map);
             DeleteFaceRequest req = DeleteFaceRequest.fromJsonString(params, DeleteFaceRequest.class);
 
-            DeleteFaceResponse resp = client.DeleteFace(req);
-
-            return resp;
+            return client.DeleteFace(req);
         } catch (TencentCloudSDKException e) {
             System.out.println(e.toString());
             return null;

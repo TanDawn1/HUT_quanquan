@@ -52,4 +52,12 @@ public class SearchByFaceController {
         return new ResponseBean(200,"ok",iSearchByFaceService.viewSelfFace(user));
     }
 
+    @PostMapping("/face/delface")
+    @ApiOperation("删除自己的人脸数据")
+    public ResponseBean delFace(HttpServletRequest request){
+        User user = (User)redisUtils.get(request.getHeader("token"));
+        if(user == null) return new ResponseBean(403,"未登录",null);
+        return new ResponseBean(200,"ok",iSearchByFaceService.deleFace(user));
+    }
+
 }

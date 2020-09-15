@@ -5,14 +5,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import com.hutquan.hut.pojo.GeoMemberAndRadius;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.ReactiveListCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -542,11 +539,19 @@ public class RedisUtils {
      */
     public long lRemove(String key,long count,Object value) {
         try {
-            Long remove = redisTemplate.opsForList().remove(key, count, value);
-            return remove;
+            return redisTemplate.opsForList().remove(key, count, value);
         } catch (Exception e) {
             e.printStackTrace();
             return 0;
+        }
+    }
+
+    public Long llen(String key){
+        try{
+            return redisTemplate.opsForList().size(key);
+        }catch (Exception e){
+            e.printStackTrace();
+            return 0L;
         }
     }
 
@@ -615,6 +620,26 @@ public class RedisUtils {
         return redisTemplate.opsForZSet().reverseRange(key,l,l1);
     }
 
+    /**
+     * 根据key和member删除元素
+     * @param key
+     * @param member
+     * @return
+     */
+    public Long zrem(String key, Object member){
+        return redisTemplate.opsForZSet().remove(key,member);
+    }
+
+    /**
+     * 根据key查找元素个数
+     * @param key
+     * @return
+     */
+    public Long zscard(String key){
+        return redisTemplate.opsForZSet().zCard(key);
+    }
+
+//================================= geo  ====================================
     /**
      * @Title: geoAdd
      * @param key key

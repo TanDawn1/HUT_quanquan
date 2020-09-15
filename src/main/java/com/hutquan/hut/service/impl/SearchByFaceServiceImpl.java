@@ -71,38 +71,11 @@ public class SearchByFaceServiceImpl implements ISearchByFaceService {
             //new 一个新的list 用于存储处理好顺序的值
             List<UserSearchFace> userSearchFacesCom = new ArrayList<>();
             for(int i = 0; i < len; i++){
-//                //获取personId
+//              //获取personId
                 //二分查找 + 辅助list 用空间换取时间效率 O(log n) 空间O(n)
                 binarySearch(userSearchFaces,userSearchFacesCom,candidates[i]);
             }
             return userSearchFacesCom;
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    @Override
-    public Object searchFaces1(MultipartFile face) {
-        if (face.isEmpty()) {
-            return null;
-        }
-        String fileBase64 = null;
-        try {
-            //腾讯接口需要 Base64编码 将MultipatrFile转为Base64编码
-            fileBase64 = MyMiniUtils.multipartFileToBase64(face);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-        //腾讯提供的SDK
-        SearchFacesResponse resp = null;
-        try {
-            //获取人员库ID,腾讯充钱解锁十万个人员库
-            List<Integer> groups = iSearchByFaceMapper.selectGroupId();
-            //调用腾讯接口
-            resp = userFaceUtils.SearchFaces(groups, fileBase64);
-            return resp;
         } catch (NumberFormatException e) {
             e.printStackTrace();
             return null;
@@ -125,9 +98,10 @@ public class SearchByFaceServiceImpl implements ISearchByFaceService {
         List<Integer> groups = iSearchByFaceMapper.selectGroupId();
         //上传人脸图片到自己数据库
         String image = FileUtil.fileUpload(user.getUserId(),photo,3);
-        if(image.equals("")) return false;
-        List<String> list = (List<String>) redisUtils.hget("faceImage",user.getUserId().toString());
-        if(list != null) return false;
+        if(image == null || image.equals("")) return false;
+//        List<String> list = (List<String>) redisUtils.hget("faceImage",user.getUserId().toString());
+//        if(list != null) return false;
+        //直接更新人脸图片地址
         redisUtils.hset("faceImage",user.getUserId().toString(),image);
         //将人员和人脸数据上传腾讯云
         //判断性别
@@ -146,6 +120,20 @@ public class SearchByFaceServiceImpl implements ISearchByFaceService {
         redisUtils.hget("faceImage",user.getUserId().toString());
         //if(list == null) return null;
         return (String) redisUtils.hget("faceImage",user.getUserId().toString());
+    }
+
+    @Override
+    public String deleFace(User user) {
+        if(user.getUserId() <= 0) return "fail";
+        try {//删除
+            userFaceUtils.DeletePerson(user.getUserId());
+            //删除Redis中的人脸
+            redisUtils.hdel("faceImage", user.getUserId().toString());
+            return "ok";
+        }catch (Exception e){
+            e.printStackTrace();
+            return "未知错误,fail";
+        }
     }
 
     /**

@@ -11,6 +11,7 @@ import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.stereotype.Service;
 
@@ -62,15 +63,18 @@ public class GeoFriendsCircleServiceImpl implements IGeoFriendsCircleService {
                 dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
                 //commentCount
                 dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
-                if (user != null) {
-                    if (user.getUserId() == dynamic.getUserId()) dynamic.setSelf(true);
-                    //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
-                    if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
-                        dynamic.setLike(true);
-                }
+                if (user.getUserId().equals(dynamic.getUserId())) dynamic.setSelf(true);
+                //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+                if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
+                    dynamic.setLike(true);
             }
             return new PageInfo<>(list);
         }
         return  null;
+    }
+
+    @Override
+    public Boolean updateGpsData(User user, Point point) {
+        return 1 == redisUtils.geoAdd(LOCATION, point, user.getUserId().toString());
     }
 }

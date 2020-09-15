@@ -18,7 +18,7 @@
 
     <!--parameterType(输入类型)、resultType(输出类型)-->
     <select id="selectUser" parameterType="int" resultType="com.hutquan.hut.pojo.User">
-        SELECT username,avatar_picture,`time`,sex FROM `user` WHERE  `user_id` = #{userId}
+        SELECT user_id,username,avatar_picture,`time`,sex FROM `user` WHERE  `user_id` = #{userId}
     </select>
 
     <select id="teleSelectUser" resultType="Integer">

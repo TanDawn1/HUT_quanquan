@@ -1,6 +1,5 @@
 package com.hutquan.hut.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.hutquan.hut.mapper.IWithFriensMapper;
@@ -14,11 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -27,13 +22,13 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     @Value("${uploade.dynamicPhoto.dir}")
     private  String dynamicPhoto;
 
-    private static final String LIKE = "like:";
-
     private static final String FLLOW = "fllow:";
 
     private static final String STAR = "star:";
 
     private static final String SELFFOLLOW = "selfFollow:";
+
+    private static final String DYNAMICLIKE = "dynamic_like";
 
     @Autowired
     private IWithFriensMapper iWithFriensMapper;
@@ -41,69 +36,39 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     @Autowired
     private RedisUtils redisUtils;
 
-    /**
-     * 通过like数来排序查找
-     * @param pageNum
-     * @param pageSize
-     * @return
-     */
-    @Override
-    public List<Dynamic> dynamicsByLike(int pageNum, int pageSize) {
-        //PageHelper.startPage(pageNum,pageSize);
-//        List<Dynamic> list = iWithFriensMapper.dynamicsByLike();
-//        List<String> photoDir = new ArrayList<>();
-//        for(int i = 0; i < list.size(); i++) {
-//            list.get(i).setImagesList(JSON.parseArray(list.get(i).getImages(), String.class));
-////            for(String image: list.get(i).getImagesList()){
-////                photoDir.add(image);
-////            }
-////            list.get(i).setImagesList(photoDir);
-//            list.get(i).setImages(null);
-//        }
-//        PageInfo<Dynamic> page = new PageInfo<>(list);
-//
-//        return page;
-        return null;
-    }
 
     /**
      * 按时间顺序查找动态
      * @param pageNum
      * @param pageSize
-     * @param request
      * @return
      */
     @Override
-    public PageInfo<Dynamic> dynamicsByTime(int pageNum, int pageSize, HttpServletRequest request) {
-        User user = (User) request.getSession().getAttribute("user");
-        String userID = LIKE +user.getUserId();
+    public PageInfo<Dynamic> dynamicsByTime(int pageNum, int pageSize, User user) {
 
         List<Dynamic> list = iWithFriensMapper.dynamicsByTime();
 
         List<String> photoDir = new ArrayList<>();
-        for(int i = 0; i < list.size(); i++) {
-            //list.get(i).setImagesList(JSON.parseArray(list.get(i).getImages(), String.class));
-//            for(String image: list.get(i).getImagesList()){
-//                photoDir.add(image);
-//            }
-//            list.get(i).setImagesList(photoDir);
-            //list.get(i).setLikeSum(redisUtils.zscore("Dynamic", list.get(i).getDynamicId()));
-            list.get(i).setImages(null);
-            //判断用户是否给该动态点赞
-            list.get(i).setLike(redisUtils.sHasKey(userID,list.get(i).getDynamicId()));
-            //判断是否是自己的动态
-            list.get(i).setSelf(list.get(i).getUserId() == user.getUserId());
-        }
-        PageInfo<Dynamic> page = new PageInfo<>(list);
+        for(Dynamic dynamic : list) {
+            //为了提升效率，所以starCount和commentCount都是在Redis中保存的
+            //starCount
+            dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
+            //commentCount
+            dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
 
-        return page;
+            if (user != null && user.getUserId().equals(dynamic.getUserId()))
+                dynamic.setSelf(true);
+            //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+            if (user != null && redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
+                dynamic.setLike(true);
+        }
+        return new PageInfo<>(list);
     }
 
     /**
      * 关注的人的动态
      * @param pageNum
      * @param pageSize
-     * @param request
      * @return
      */
     @Override
@@ -144,11 +109,16 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      */
     @Override
     public boolean addConcern(User user, int concernUserId) {
-
-        if(redisUtils.sSet("userConcernId"+user.getUserId(),concernUserId) != 0){
+        try {
+            //存入用户的关注列表 关注的越早排序越靠前
+            redisUtils.lSet(SELFFOLLOW + user.getUserId(), concernUserId);
+            //存入被关注用户列表
+            redisUtils.zAdd(FLLOW + concernUserId, user.getUserId().toString(), Instant.now().getEpochSecond());
             return true;
+        }catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     /**
@@ -159,11 +129,16 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      */
     @Override
     public boolean remConcern(User user, int concernUserId) {
-
-        if(redisUtils.setRemove("userConcernId"+user.getUserId(),concernUserId) != 0){
+        try {
+            //删除用户的关注列表指定用户
+            redisUtils.lRemove(SELFFOLLOW + user.getUserId(), 0,concernUserId);
+            //删除被关注用户列表中的指定用户 TODO 其实可以不用移除 参考 wechat
+            redisUtils.zrem(FLLOW + concernUserId, user.getUserId().toString());
             return true;
+        }catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     /**
@@ -175,14 +150,14 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      */
     @Override
     public boolean addDynamic(User user, Dynamic dynamic, MultipartFile[] files) {
-        String newFileName = null;
+        //String newFileName = null;
         String dynamicPhotos = null;
         //上传了图片
         if(files != null){
             //上传图片
             dynamicPhotos = FileUtil.fileUpload(user.getUserId(),files,1);
 
-            if(dynamicPhotos.equals("")) return false;
+            if( dynamicPhotos == null || dynamicPhotos.equals("")) return false;
         }
         dynamic.setImages(dynamicPhotos);
         //时间戳 秒级
@@ -209,14 +184,28 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      * @return
      */
     @Override
-    public boolean likeDynamic(User user, int dynamicId) {
+    public Double likeDynamic(User user, int dynamicId) {
         //System.out.println(redisUtils.sSet(LIKE+user.getUserId(),dynamicId));
-        if(redisUtils.sSet(LIKE+user.getUserId(),dynamicId) > 0){
-            redisUtils.zInCrBy("Dynamic",dynamicId,1);
-
-            return true;
+        //判断是否已经点过赞了，未点过才能够点赞
+        if(redisUtils.zscore(STAR+user.getUserId(),dynamicId) == null){
+            return redisUtils.zInCrBy(DYNAMICLIKE,dynamicId,1);
         }
-        return false;
+        return redisUtils.zscore(DYNAMICLIKE,dynamicId);
+    }
+
+    /**
+     * 取消喜爱动态
+     * @param user
+     * @param dynamicId
+     * @return
+     */
+    @Override
+    public Double cancellikeDynamic(User user, int dynamicId) {
+        //判断是否已经点过赞了，点过才能取消
+        if(redisUtils.zscore(STAR+user.getUserId(),dynamicId) != null){
+            return redisUtils.zInCrBy(DYNAMICLIKE,dynamicId,-1);
+        }
+        return redisUtils.zscore(DYNAMICLIKE,dynamicId);
     }
 
     /**
@@ -236,7 +225,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
             //commentCount
             dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment","d"+dynamic.getDynamicId()));
             if(user != null){
-                if(user.getUserId() == dynamic.getUserId()) dynamic.setSelf(true);
+                if(user.getUserId().equals(dynamic.getUserId())) dynamic.setSelf(true);
                 //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
                 if(redisUtils.zscore(STAR+user.getUserId(),dynamic.getDynamicId()) != null) dynamic.setLike(true);
             }

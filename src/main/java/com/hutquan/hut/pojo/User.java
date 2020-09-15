@@ -31,5 +31,7 @@ public class User implements Serializable {
     private Double followCount;
     //该用户关注的人数
     private Double selfFollowCount;
+    //是否被查首页的用户关注
+    private Boolean followed;
 
 }

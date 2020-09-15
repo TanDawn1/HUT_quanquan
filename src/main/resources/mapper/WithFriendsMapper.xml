@@ -26,7 +26,7 @@
     </select>
 
     <select id="dynamicsByTime" resultMap="Dynamics">
-        SELECT dynamic.* ,`user`.sex,`user`.avatar_picture,`user`.username FROM `dynamic`
+        SELECT dynamic.* ,`user`.user_id,`user`.sex,`user`.avatar_picture,`user`.username FROM `dynamic`
         JOIN `user` ON dynamic.user_id = `user`.user_id ORDER BY `time` DESC
     </select>
 

@@ -10,10 +10,7 @@ import java.util.List;
 
 public interface IWithFriendsService {
 
-    //已废弃的接口
-    List<Dynamic> dynamicsByLike(int pageNum, int pageSize);
-
-    PageInfo<Dynamic> dynamicsByTime(int pageNum, int pageSize, HttpServletRequest request);
+    PageInfo<Dynamic> dynamicsByTime(int pageNum, int pageSize, User user);
 
     PageInfo<Dynamic> condynamic(int pageNum, int pageSize, User user);
 
@@ -23,8 +20,10 @@ public interface IWithFriendsService {
 
     boolean addDynamic(User user, Dynamic dynamic, MultipartFile[] file);
 
-    boolean likeDynamic(User user,int dynamicId);
+    Double likeDynamic(User user,int dynamicId);
 
     //dynamicsByLike的新接口
     List<Dynamic> dynamicsByHot(User user);
+
+    Double cancellikeDynamic(User user, int dynamicId);
 }

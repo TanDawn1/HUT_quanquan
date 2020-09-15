@@ -20,4 +20,10 @@ public interface IUserService {
 
     List<Follower> queryFollower(Integer userId, Long l, Long l1);
 
+    Long querySelfFollow(User user);
+
+    Long querySelfFollowed(User user);
+
+    Boolean followed(Integer user1Id,Integer user2Id);
+
 }

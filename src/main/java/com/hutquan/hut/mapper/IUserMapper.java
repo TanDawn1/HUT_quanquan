@@ -15,7 +15,7 @@ import java.util.Set;
 @Repository
 public interface IUserMapper {
 
-    //待废弃
+
     User selectUser(int userId);
 
     Integer teleSelectUser(String tele);

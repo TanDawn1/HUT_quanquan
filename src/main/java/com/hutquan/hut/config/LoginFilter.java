@@ -25,7 +25,6 @@ public class LoginFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        System.out.println("进入了过滤器");
         //httpsr 是 sr的子类，是更适用于http请求的方法
         //里面有转为http设计的接口 getHeard、getSession、getMethod
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;

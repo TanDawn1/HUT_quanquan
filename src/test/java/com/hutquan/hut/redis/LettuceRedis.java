@@ -87,4 +87,6 @@ public class LettuceRedis {
         //System.out.println(redisUtils.hset("userToken","1","daedqfeqf"));
         System.out.println(redisUtils.hget("userToken","1"));
     }
+
+
 }

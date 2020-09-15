@@ -33,9 +33,10 @@ public class WithFriendsHomeController {
      * @return
      */
     @PostMapping("/withfriend/releasedc")
-    @ApiOperation("发布动态")
+    @ApiOperation("发布动态 ->图片为非必要上传项 这里因为服务器负载的原因不接入地址数据")
     public  ResponseBean releaseDynamic(Dynamic dynamic, @RequestParam(value = "file",required = false) MultipartFile[] files, HttpServletRequest request){
         User user = (User) redisUtils.get(request.getHeader("token"));
+        if(user == null) return new ResponseBean(401,"未登录",null);
         //User user = (User) request.getSession().getAttribute("user");
         try {
             return new ResponseBean(200,"ok",iWithFriendsService.addDynamic(user,dynamic,files));
@@ -63,15 +64,15 @@ public class WithFriendsHomeController {
     /**
      * 按时间顺序
      * @param pageNum
-     * @param pageSize
      * @param request
      * @return
      */
-    @GetMapping("/withfriend/dynamicbytime")
-    @ApiOperation("按照时间排序动态")
-    public ResponseBean DynamicByTime(@RequestParam int pageNum, @RequestParam int pageSize,HttpServletRequest request){
+    @GetMapping("/withfriend/dynamicbytime/{pageNum}")
+    @ApiOperation("按照时间由近到远排序动态")
+    public ResponseBean DynamicByTime(@PathVariable int pageNum,HttpServletRequest request){
         try{
-            PageInfo<Dynamic> dynamicPageInfo = iWithFriendsService.dynamicsByTime(pageNum,pageSize,request);
+            User user = (User) redisUtils.get(request.getHeader("token"));
+            PageInfo<Dynamic> dynamicPageInfo = iWithFriendsService.dynamicsByTime(pageNum,20,user);
 
             return new ResponseBean(200, "ok", dynamicPageInfo);
 
@@ -159,7 +160,7 @@ public class WithFriendsHomeController {
      * @return
      */
     @GetMapping("/withfriend/like/{dynamicId}")
-    @ApiOperation("对动态添加喜欢")
+    @ApiOperation("对动态添加喜欢,返回值为该动态最新的点赞量")
     public ResponseBean likeDynamic(@PathVariable("dynamicId") int dynamicId,HttpServletRequest request){
         //User user = (User) request.getSession().getAttribute("user");
         User user = (User) redisUtils.get(request.getHeader("token"));
@@ -168,6 +169,24 @@ public class WithFriendsHomeController {
         }
         return new ResponseBean(200,"ok",
                 iWithFriendsService.likeDynamic(user,dynamicId));
+    }
+
+    /**
+     * 取消喜欢
+     * @param dynamicId
+     * @param request
+     * @return
+     */
+    @GetMapping("/withfriend/cancellike/{dynamicId}")
+    @ApiOperation("取消对动态添加的喜欢,返回值为该动态最新的点赞量")
+    public ResponseBean cancellikeDynamic(@PathVariable("dynamicId") int dynamicId,HttpServletRequest request){
+        //User user = (User) request.getSession().getAttribute("user");
+        User user = (User) redisUtils.get(request.getHeader("token"));
+        if(user == null){
+            return new ResponseBean(301,"未登录",null);
+        }
+        return new ResponseBean(200,"ok",
+                iWithFriendsService.cancellikeDynamic(user,dynamicId));
     }
 
 
