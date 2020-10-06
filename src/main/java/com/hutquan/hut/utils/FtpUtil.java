@@ -130,8 +130,10 @@ public class FtpUtil {
      * @return urlStr 图片的存放路径
      */
     public static String putImages(InputStream inputStream, String imagesName) {
+        ChannelSftp sftp = null;
         try {
-            ChannelSftp sftp = getChannel();
+            sftp = getChannel();
+            System.out.println(sftp);
             String path = rootPath + "/";
             //创建文件
             //createDir("/home/image/test", sftp);
@@ -139,8 +141,6 @@ public class FtpUtil {
             // 上传文件
             sftp.put(inputStream, path + imagesName);
             logger.info("上传成功！");
-            sftp.quit();
-            sftp.exit();
 
             // 处理返回的路径
             String resultFile;
@@ -150,6 +150,13 @@ public class FtpUtil {
 
         } catch (Exception e) {
             logger.error("上传失败：" + e.getMessage());
+        }finally {
+            if (sftp != null) {
+                sftp.quit();
+            }
+            if (sftp != null) {
+                sftp.exit();
+            }
         }
         return "";
     }

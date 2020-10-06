@@ -54,5 +54,10 @@
         </foreach>
     </select>
 
+    <select id="dynamicsBySelf" resultMap="Dynamics">
+        SELECT dynamic.*,`user`.avatar_picture,`user`.username FROM dynamic,`user`
+        WHERE dynamic.user_id = #{userId}
+    </select>
+
 
 </mapper>

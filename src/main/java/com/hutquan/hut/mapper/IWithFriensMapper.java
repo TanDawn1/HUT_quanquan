@@ -22,4 +22,5 @@ public interface IWithFriensMapper {
 
     List<Dynamic> dynamicsByHot(Set<Object> idSet);
 
+    List<Dynamic> dynamicsBySelf(Integer userId);
 }

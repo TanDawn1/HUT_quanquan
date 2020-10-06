@@ -127,7 +127,7 @@ public class SearchByFaceServiceImpl implements ISearchByFaceService {
         if(user.getUserId() <= 0) return "fail";
         try {//删除
             userFaceUtils.DeletePerson(user.getUserId());
-            //删除Redis中的人脸
+            //删除Redis中的人脸索引
             redisUtils.hdel("faceImage", user.getUserId().toString());
             return "ok";
         }catch (Exception e){

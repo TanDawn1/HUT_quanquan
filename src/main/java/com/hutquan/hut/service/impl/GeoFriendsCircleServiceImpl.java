@@ -7,6 +7,7 @@ import com.hutquan.hut.pojo.Dynamic;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IGeoFriendsCircleService;
 import com.hutquan.hut.utils.RedisUtils;
+import com.hutquan.hut.vo.PageBean;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.GeoResult;
@@ -39,7 +40,7 @@ public class GeoFriendsCircleServiceImpl implements IGeoFriendsCircleService {
      * @return
      */
     @Override
-    public PageInfo<Dynamic> nearybyDynamic(User user,int pageNum, int pageSize) {
+    public PageBean<Dynamic> nearybyDynamic(User user, int pageNum, int pageSize) {
         //获取附近100KM内的用户Id
         GeoResults<RedisGeoCommands.GeoLocation<Object>> geoResults
                 = redisUtils.georadiusbymember(LOCATION,user.getUserId().toString(),100D);
@@ -68,7 +69,7 @@ public class GeoFriendsCircleServiceImpl implements IGeoFriendsCircleService {
                 if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
                     dynamic.setLike(true);
             }
-            return new PageInfo<>(list);
+            return new PageBean<>(list);
         }
         return  null;
     }

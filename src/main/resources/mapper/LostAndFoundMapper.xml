@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--你接口的包名是com.abc.dao,接口名是NameMapper.java，那么你的mapper.xml的namespace应该是com.abc.dao.NameMapper-->
+<mapper namespace="com.hutquan.hut.mapper.ILostAndFoundMapper" >
+
+    <resultMap id="lostAndFoundResMap" type="com.hutquan.hut.pojo.Search">
+        <id column="s_id" property="sId" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="message" property="message" jdbcType="VARCHAR"/>
+        <result column="s_photo" property="sPhoto" jdbcType="VARCHAR"/>
+        <result column="location" property="location" jdbcType="VARCHAR"/>
+        <result column="time" property="time" jdbcType="INTEGER"/>
+        <association property="user" javaType="com.hutquan.hut.pojo.User">
+            <id column="user_id" property="userId" jdbcType="INTEGER" />
+            <!-- 普通的列  -column 是数据库中字段， property是实体类中字段-->
+            <result column="avatar_picture" property="avatarPicture" jdbcType="VARCHAR" />
+            <result column="username" property="username" jdbcType="VARCHAR" />
+        </association>
+    </resultMap>
+
+     <select id="selectAllLost" resultMap="lostAndFoundResMap">
+        SELECT search.*,`user`.user_id,`user`.avatar_picture,`user`.username FROM
+        search JOIN `user` ON search.user_id = `user`.user_id  where type = 0
+     </select>
+
+    <select id="selectAllFound" resultMap="lostAndFoundResMap">
+        SELECT search.*,`user`.user_id,`user`.avatar_picture,`user`.username FROM
+        search JOIN `user` ON search.user_id = `user`.user_id  where type = 1
+     </select>
+
+    <insert id="putLost" parameterType="com.hutquan.hut.pojo.Search">
+         INSERT search(user_id,message,s_photo,location,`time`,`type`)
+         VALUES(#{userId},#{message},#{SPhoto},#{location},#{time},0)
+    </insert>
+
+    <insert id="putFound" parameterType="com.hutquan.hut.pojo.Search">
+        INSERT search(user_id,message,s_photo,location,`time`,`type`)
+         VALUES(#{userId},#{message},#{SPhoto},#{location},#{time},1)
+    </insert>
+
+</mapper>

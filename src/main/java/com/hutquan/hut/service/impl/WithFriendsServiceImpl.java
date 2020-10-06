@@ -8,6 +8,7 @@ import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IWithFriendsService;
 import com.hutquan.hut.utils.FileUtil;
 import com.hutquan.hut.utils.RedisUtils;
+import com.hutquan.hut.vo.PageBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,9 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      * @return
      */
     @Override
-    public PageInfo<Dynamic> dynamicsByTime(int pageNum, int pageSize, User user) {
+    public PageBean<Dynamic> dynamicsByTime(int pageNum, int pageSize, User user) {
+        //使用PageHelper分页
+        PageHelper.startPage(pageNum, pageSize);
 
         List<Dynamic> list = iWithFriensMapper.dynamicsByTime();
 
@@ -62,7 +65,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
             if (user != null && redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
                 dynamic.setLike(true);
         }
-        return new PageInfo<>(list);
+        return new PageBean<>(list);
     }
 
     /**
@@ -72,7 +75,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      * @return
      */
     @Override
-    public PageInfo<Dynamic> condynamic(int pageNum, int pageSize, User user) {
+    public PageBean<Dynamic> condynamic(int pageNum, int pageSize, User user) {
 
         //String userID = LIKE +user.getUserId();
         List<Object>  idList = redisUtils.lGet(SELFFOLLOW + user.getUserId(),0, -1);
@@ -95,7 +98,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
                 if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
                     dynamic.setLike(true);
             }
-            return new PageInfo<>(list);
+            return new PageBean<>(list);
         }else {
             return null;
         }
@@ -206,6 +209,59 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
             return redisUtils.zInCrBy(DYNAMICLIKE,dynamicId,-1);
         }
         return redisUtils.zscore(DYNAMICLIKE,dynamicId);
+    }
+
+    /**
+     * 查询自己的动态
+     * @param pageNum
+     * @param pageSize
+     * @param user
+     * @return
+     */
+    @Override
+    public PageBean<Dynamic> dynamicsBySelf(int pageNum, int pageSize, User user) {
+        //使用PageHelper分页
+        PageHelper.startPage(pageNum, pageSize);
+
+        List<Dynamic> list = iWithFriensMapper.dynamicsBySelf(user.getUserId());
+        List<String> photoDir = new ArrayList<>();
+        for(Dynamic dynamic : list) {
+            //为了提升效率，所以starCount和commentCount都是在Redis中保存的
+            //starCount
+            dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
+            //commentCount
+            dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
+
+            if (user != null && user.getUserId().equals(dynamic.getUserId()))
+                dynamic.setSelf(true);
+            //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+            if (user != null && redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
+                dynamic.setLike(true);
+        }
+        return new PageBean<>(list);
+    }
+
+    @Override
+    public PageBean<Dynamic> queryDynamic(int userId, int pageNum, int pageSize, User user) {
+        //使用PageHelper分页
+        PageHelper.startPage(pageNum, pageSize);
+        //TODO 与查询自己的动态共用同一个查询接口
+        List<Dynamic> list = iWithFriensMapper.dynamicsBySelf(userId);
+        List<String> photoDir = new ArrayList<>();
+        for(Dynamic dynamic : list) {
+            //为了提升效率，所以starCount和commentCount都是在Redis中保存的
+            //starCount
+            dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
+            //commentCount
+            dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
+
+            if (user != null && user.getUserId().equals(dynamic.getUserId()))
+                dynamic.setSelf(true);
+            //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+            if (user != null && redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
+                dynamic.setLike(true);
+        }
+        return new PageBean<>(list);
     }
 
     /**

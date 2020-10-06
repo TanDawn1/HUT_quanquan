@@ -53,10 +53,11 @@ public class TeleServiceImpl implements ITeleService {
                 user.setTime(Instant.now().getEpochSecond());
                 //用户名就用tele，需要后续修改
                 user.setUsername(tele);
+                user.setTele(tele);
                 //随机生成密码
-                user.setPasswd(UUID.randomUUID().toString());
+                user.setPasswd(UUID.randomUUID().toString().substring(0,19));
                 //默认头像
-                user.setAvatarPicture("default.jpg");
+                user.setAvatarPicture("[\"default.jpg\"]");
                 //会返回userId
                 if(iUserMapper.insertUser(user) != 1) {
                     Exception e = new Exception();
@@ -96,13 +97,13 @@ public class TeleServiceImpl implements ITeleService {
         telenumber.add(86+tele);
         Set<String> templateSet = new HashSet<>();
         templateSet.add(code);
-        templateSet.add("'1'");
+        //templateSet.add("'0'");
         System.out.println(templateSet.toString());
         Map<String, String> bodys = new HashMap<String, String>();
         bodys.put("callbackUrl", "http://test.dev.esandcloud.com");
         bodys.put("channel", "0");
         bodys.put("mobileSet", String.valueOf(telenumber));
-        bodys.put("templateID", "0000000");
+        bodys.put("templateID", "20200914093120");
         bodys.put("templateParamSet", String.valueOf(templateSet));
         try {
             /**

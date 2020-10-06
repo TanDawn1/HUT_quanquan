@@ -32,7 +32,7 @@ public class TeleController {
      */
     @PostMapping("/tele/yzm/{tele}")
     @ApiOperation("发送验证码," +
-            "因为代码开源，为了防止恶意访问，做了个限制，同一个号码1小时内最多只能调用该接口5次" +
+            "为了防止恶意访问，做了个限制，同一个号码1小时内最多只能调用该接口5次" +
             "如果在一个小时之内同一个号码请求次数达到60则该号码永久不能登录")
     public String yzmSend(@PathVariable("tele") String tele, HttpServletRequest request){
 

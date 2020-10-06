@@ -1,8 +1,12 @@
 package com.hutquan.hut.controller;
 
+import com.github.pagehelper.PageInfo;
+import com.hutquan.hut.pojo.Dynamic;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IUserService;
+import com.hutquan.hut.service.IWithFriendsService;
 import com.hutquan.hut.utils.RedisUtils;
+import com.hutquan.hut.vo.PageBean;
 import com.hutquan.hut.vo.ResponseBean;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,9 @@ public class UserController {
 
     @Autowired
     private RedisUtils redisUtils;
+
+    @Autowired
+    private IWithFriendsService iWithFriendsService;
 
     /**
      * 通过token获取用户数据
@@ -189,5 +196,27 @@ public class UserController {
             return new ResponseBean(400,"fail,未登录",null);
         }
         return new ResponseBean(200,"success",iUserService.queryFollower(user.getUserId(),0L,-1L));
+    }
+
+    /**
+     * 查询自己的动态
+     * @param request
+     * @return
+     */
+    @GetMapping("/user/selfdynamic/{pageNum}")
+    @ApiOperation("自己的动态,一页最多20条")
+    public ResponseBean selfDynamic(HttpServletRequest request,@PathVariable("pageNum") int pageNum){
+        try{
+            User user = (User) redisUtils.get(request.getHeader("token"));
+            if(user == null || user.getUserId() == null) return new ResponseBean(400,"未登录",null);
+
+            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.dynamicsBySelf(pageNum,20,user);
+
+            return new ResponseBean(200, "ok", dynamicPageInfo);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseBean(500,"未知错误",null);
+        }
     }
 }

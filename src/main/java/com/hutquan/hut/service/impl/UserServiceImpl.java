@@ -1,9 +1,11 @@
 package com.hutquan.hut.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.hutquan.hut.mapper.IUserMapper;
 import com.hutquan.hut.pojo.Follower;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IUserService;
+import com.hutquan.hut.utils.FileUtil;
 import com.hutquan.hut.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,10 +22,9 @@ import java.util.UUID;
 @Service
 public class UserServiceImpl implements IUserService {
 
-    @Value("${upload.headPortrait.dir}")
-    private  String headPhoto;
-
     private static final String FOLLOW = "follow:";
+
+    private static final String SELFFOLLOW = "selfFollow:";
 
     @Autowired
     private IUserMapper iUserMapper;
@@ -70,18 +71,21 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public String updataHeadPhoto(User user, MultipartFile file) {
-
-        String originalFileName = file.getOriginalFilename();
-        String newfileName = UUID.randomUUID() + "-" +user.getUserId()
-                +originalFileName.substring(originalFileName.lastIndexOf("."));
-        File newfile = new File(headPhoto + newfileName);
-
+        MultipartFile[] multipartFiles = {file};
+        String dynamicPhotos ="";
+//        String originalFileName = file.getOriginalFilename();
+//        String newfileName = UUID.randomUUID() + "-" +user.getUserId()
+//                +originalFileName.substring(originalFileName.lastIndexOf("."));
+//        File newfile = new File(headPhoto + newfileName);
+        if(file != null){
+            //上传图片
+            dynamicPhotos = FileUtil.fileUpload(user.getUserId(),multipartFiles,0);
+            if( dynamicPhotos == null || dynamicPhotos.equals("")) return null;
+        }
         try {
-            //写入磁盘
-            file.transferTo(newfile);
-            iUserMapper.upHeadUrl(newfileName,user.getUserId());
-            return newfileName;
-        } catch (IOException e) {
+            iUserMapper.upHeadUrl(dynamicPhotos,user.getUserId());
+            return dynamicPhotos;
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -98,12 +102,12 @@ public class UserServiceImpl implements IUserService {
     @Override
     public Long querySelfFollow(User user) {
 
-        return redisUtils.llen(user.getUserId().toString());
+        return redisUtils.llen(SELFFOLLOW + user.getUserId().toString());
     }
 
     @Override
     public Long querySelfFollowed(User user) {
-        return redisUtils.zscard(user.getUserId().toString());
+        return redisUtils.zscard(FOLLOW + user.getUserId().toString());
     }
 
     @Override

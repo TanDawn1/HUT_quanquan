@@ -18,9 +18,10 @@ public class FileUtil {
         String result = "";
         String pathSuffix = "";
         if(flag == 0) pathSuffix = "headPhoto/";
-        if(flag == 1) pathSuffix = "dynamicPhoto/";
-        if(flag == 2) pathSuffix = "feedBack/";
-        if(flag == 3) pathSuffix = "userFace/";
+        else if(flag == 1) pathSuffix = "dynamicPhoto/";
+        else if(flag == 2) pathSuffix = "feedBack/";
+        else if(flag == 3) pathSuffix = "userFace/";
+        else if(flag == 4) pathSuffix = "searchPhoto/";
         List<String> list = new ArrayList<>();
         long time = System.currentTimeMillis();
         int i = 0;

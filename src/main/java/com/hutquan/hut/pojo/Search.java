@@ -13,22 +13,21 @@ public class Search implements Serializable {
 
     private Integer sId;
 
+    //用户Id
     private Integer userId;
+
+    //用户信息
+    private User user;
 
     private String message;
 
-    private List<String> sPhoto;
+    private String sPhoto;
 
-    private String provine;
-
-    private String city;
-
-    private String district;
-
-    private String address;
-
-    private String lonLat;
+    private String location;
 
     private Long time;
+
+    //0为失物 1为招领
+    private Integer type;
 
 }

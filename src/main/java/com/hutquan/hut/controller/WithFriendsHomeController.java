@@ -5,6 +5,7 @@ import com.hutquan.hut.pojo.Dynamic;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IWithFriendsService;
 import com.hutquan.hut.utils.RedisUtils;
+import com.hutquan.hut.vo.PageBean;
 import com.hutquan.hut.vo.ResponseBean;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +54,11 @@ public class WithFriendsHomeController {
      * @return
      */
     @GetMapping("/withfriend/dynamic")
-    @ApiOperation("热点动态")
+    @ApiOperation("热点动态，点赞量最多的20条动态")
     public ResponseBean Dynamic(HttpServletRequest request){
+        //TODO 需要做相关处理，热点动态点赞、评论的人多
         User user = (User) redisUtils.get(request.getHeader("token"));
-
+        //TODO 应该把热点动态的相关数据直接缓存到Redis，定时刷新
         return new ResponseBean(200,"ok",iWithFriendsService.dynamicsByHot(user));
 
     }
@@ -69,10 +71,10 @@ public class WithFriendsHomeController {
      */
     @GetMapping("/withfriend/dynamicbytime/{pageNum}")
     @ApiOperation("按照时间由近到远排序动态")
-    public ResponseBean DynamicByTime(@PathVariable int pageNum,HttpServletRequest request){
+    public ResponseBean DynamicByTime(@PathVariable("pageNum") int pageNum,HttpServletRequest request){
         try{
             User user = (User) redisUtils.get(request.getHeader("token"));
-            PageInfo<Dynamic> dynamicPageInfo = iWithFriendsService.dynamicsByTime(pageNum,20,user);
+            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.dynamicsByTime(pageNum,20,user);
 
             return new ResponseBean(200, "ok", dynamicPageInfo);
 
@@ -90,20 +92,36 @@ public class WithFriendsHomeController {
      * @param request
      * @return
      */
-    @GetMapping("/withfriend/condynamic")
+    @GetMapping("/withfriend/condynamic/{pageNum}")
     @ApiOperation("关注的人的动态")
-    public ResponseBean ConDynamic(@RequestParam int pageNum,@RequestParam int pageSize, HttpServletRequest request){
+    public ResponseBean ConDynamic(@PathVariable("pageNum") int pageNum, HttpServletRequest request){
         User user = (User) redisUtils.get(request.getHeader("token"));
         if(user == null){
             return new ResponseBean(403,"未登录",null);
         }
         try {
-            PageInfo<Dynamic> dynamicPageInfo = iWithFriendsService.condynamic(pageNum, pageSize, user);
+            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.condynamic(pageNum, 20, user);
             if(dynamicPageInfo != null) {
                 return new ResponseBean(200, "ok", dynamicPageInfo);
             }else {
                 return new ResponseBean(200,"ok",null); //没有关注的人
             }
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseBean(400,"ok",null);
+        }
+    }
+
+    @GetMapping("/withfriend/querydyamic/{userId}/{pageNum}")
+    @ApiOperation("查询他人的动态,可以不登陆查看,userId指的是被查看动态的用户的用户Id")
+    public ResponseBean queryDynamic(@PathVariable("userId") int userId,@PathVariable("pageNum") int pageNum, HttpServletRequest request){
+        User user = (User) redisUtils.get(request.getHeader("token"));
+        //TODO 必要的话可以添加黑名单权限相关的东西
+        try {
+            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.queryDynamic(userId,pageNum, 20, user);
+
+            return new ResponseBean(200, "ok", dynamicPageInfo);
+
         }catch (Exception e){
             e.printStackTrace();
             return new ResponseBean(400,"ok",null);

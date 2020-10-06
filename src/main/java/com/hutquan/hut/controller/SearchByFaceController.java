@@ -30,7 +30,7 @@ public class SearchByFaceController {
     public ResponseBean searchByFace(HttpServletRequest request, MultipartFile photo){
         User user = (User) redisUtils.get(request.getHeader("token"));
         //不登录不允许返回数据
-        if(user == null) return new ResponseBean(200,"ok",null);
+        if(user == null) return new ResponseBean(403,"未登录",null);
 
         return new ResponseBean(200,"ok",iSearchByFaceService.searchFaces(photo));
     }
@@ -40,7 +40,7 @@ public class SearchByFaceController {
     public ResponseBean createFace(HttpServletRequest request,MultipartFile[] photo){
         User user = (User) redisUtils.get(request.getHeader("token"));
         //不登录不允许上传
-        if(user == null) return new ResponseBean(200,"ok",null);
+        if(user == null) return new ResponseBean(403,"未登录",null);
         return new ResponseBean(200,"ok",iSearchByFaceService.createFace(user,photo));
     }
 
@@ -48,7 +48,7 @@ public class SearchByFaceController {
     @ApiOperation("查看自己的人脸数据")
     public ResponseBean viewSelfFace(HttpServletRequest request){
         User user = (User)redisUtils.get(request.getHeader("token"));
-        if(user == null) return new ResponseBean(403,"未登录",null);
+        if(user == null) return new ResponseBean(403,"未登录，无权限查看",null);
         return new ResponseBean(200,"ok",iSearchByFaceService.viewSelfFace(user));
     }
 

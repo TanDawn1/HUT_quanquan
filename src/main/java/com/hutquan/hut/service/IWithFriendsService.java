@@ -3,16 +3,16 @@ package com.hutquan.hut.service;
 import com.github.pagehelper.PageInfo;
 import com.hutquan.hut.pojo.Dynamic;
 import com.hutquan.hut.pojo.User;
+import com.hutquan.hut.vo.PageBean;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface IWithFriendsService {
 
-    PageInfo<Dynamic> dynamicsByTime(int pageNum, int pageSize, User user);
+    PageBean<Dynamic> dynamicsByTime(int pageNum, int pageSize, User user);
 
-    PageInfo<Dynamic> condynamic(int pageNum, int pageSize, User user);
+    PageBean<Dynamic> condynamic(int pageNum, int pageSize, User user);
 
     boolean addConcern(User user,int concernUserId);
 
@@ -26,4 +26,8 @@ public interface IWithFriendsService {
     List<Dynamic> dynamicsByHot(User user);
 
     Double cancellikeDynamic(User user, int dynamicId);
+
+    PageBean<Dynamic> dynamicsBySelf(int pageNum, int pageSize, User user);
+
+    PageBean<Dynamic> queryDynamic(int userId, int pageNum, int pageSize, User user);
 }
