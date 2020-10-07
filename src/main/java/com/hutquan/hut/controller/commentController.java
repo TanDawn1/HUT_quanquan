@@ -8,6 +8,7 @@ import com.hutquan.hut.utils.RedisUtils;
 import com.hutquan.hut.vo.ResponseBean;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,6 +35,18 @@ public class commentController {
             if (user == null) return new ResponseBean(401, "未登录，无权限评论", null);
             if (comment == null || comment.getMessage().equals("")) return new ResponseBean(403, "传入参数不合规范", null);
             return new ResponseBean(200, "ok", iCommentService.insertDynamicComment(user, comment) == 0 ? "未知错误" : "成功");
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseBean(500,"未知错误",null);
+        }
+    }
+
+
+    @PostMapping("/comment/{pageNum}/{dynamicId}")
+    @ApiOperation("查询指定动态的评论 无需登录")
+    public ResponseBean queryCommentDynamic(@PathVariable("pageNum") int pageNum, @PathVariable("dynamicId") int dynamicId){
+        try{
+            return new ResponseBean(200,"ok",iCommentService.queryCommentDynamic(pageNum,dynamicId));
         }catch (Exception e){
             e.printStackTrace();
             return new ResponseBean(500,"未知错误",null);

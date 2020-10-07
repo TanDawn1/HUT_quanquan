@@ -1,6 +1,5 @@
 package com.hutquan.hut.controller;
 
-import com.github.pagehelper.PageInfo;
 import com.hutquan.hut.pojo.Dynamic;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.IWithFriendsService;
@@ -43,7 +42,7 @@ public class WithFriendsHomeController {
             return new ResponseBean(200,"ok",iWithFriendsService.addDynamic(user,dynamic,files));
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseBean(400, "ok", null);
+            return new ResponseBean(500, "未知错误", null);
         }
 
     }
@@ -80,7 +79,7 @@ public class WithFriendsHomeController {
 
         }catch (Exception e){
             e.printStackTrace();
-            return new ResponseBean(400,"ok",null);
+            return new ResponseBean(500,"未知错误",null);
         }
     }
 
@@ -108,7 +107,7 @@ public class WithFriendsHomeController {
             }
         }catch (Exception e){
             e.printStackTrace();
-            return new ResponseBean(400,"ok",null);
+            return new ResponseBean(500,"未知错误",null);
         }
     }
 
@@ -124,7 +123,7 @@ public class WithFriendsHomeController {
 
         }catch (Exception e){
             e.printStackTrace();
-            return new ResponseBean(400,"ok",null);
+            return new ResponseBean(500,"未知错误",null);
         }
     }
 
@@ -162,7 +161,7 @@ public class WithFriendsHomeController {
         //User user = (User) request.getSession().getAttribute("user");
         User user = (User) redisUtils.get(request.getHeader("token"));
         if(user == null){
-            return new ResponseBean(301,"未登录",null);
+            return new ResponseBean(403,"未登录",null);
         }
         if(iWithFriendsService.remConcern(user,concernUserId)){
             return new ResponseBean(200,"ok",null);
@@ -201,13 +200,21 @@ public class WithFriendsHomeController {
         //User user = (User) request.getSession().getAttribute("user");
         User user = (User) redisUtils.get(request.getHeader("token"));
         if(user == null){
-            return new ResponseBean(301,"未登录",null);
+            return new ResponseBean(403,"未登录",null);
         }
         return new ResponseBean(200,"ok",
                 iWithFriendsService.cancellikeDynamic(user,dynamicId));
     }
 
-
+    @PostMapping("/withfriend/delDynamic/{dynamicId}")
+    @ApiOperation("删除自己的动态")
+    public ResponseBean delDynamic(@PathVariable("dynamicId")int dynamicId,HttpServletRequest request){
+        User user = (User) redisUtils.get(request.getHeader("token"));
+        if(user == null){
+            return new ResponseBean(403,"未登录",null);
+        }
+        return new ResponseBean(200,"ok",iWithFriendsService.delDynamic(dynamicId,user));
+    }
 
 
 }

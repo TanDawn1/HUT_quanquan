@@ -264,6 +264,15 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
         return new PageBean<>(list);
     }
 
+    @Override
+    public boolean delDynamic(int dynamicId, User user) {
+        if(user.getUserId() >= 0){
+            return iWithFriensMapper.delDynamic(dynamicId) > 0;
+        }else{
+            return false;
+        }
+    }
+
     /**
      * 热点动态
      * @param user

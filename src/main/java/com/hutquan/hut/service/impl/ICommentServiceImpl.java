@@ -1,10 +1,12 @@
 package com.hutquan.hut.service.impl;
 
+import com.github.pagehelper.PageHelper;
 import com.hutquan.hut.mapper.ICommentMapper;
 import com.hutquan.hut.pojo.Comment;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.service.ICommentService;
 import com.hutquan.hut.utils.RedisUtils;
+import com.hutquan.hut.vo.PageBean;
 import com.hutquan.hut.vo.ResponseBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,18 @@ public class ICommentServiceImpl implements ICommentService {
         }catch (Exception e){
             e.printStackTrace();
             return 0;
+        }
+    }
+
+    @Override
+    public PageBean<Comment> queryCommentDynamic(int pageNum,int dynamicId) {
+
+        try {
+            PageHelper.startPage(pageNum,20);
+            return new PageBean<>(iCommentMapper.queryCommentDynamic(dynamicId));
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
         }
     }
 }

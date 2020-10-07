@@ -22,4 +22,8 @@ public class Comment implements Serializable {
 
     private Long time;
 
+    private String userName;
+
+    private String toUserName;
+
 }

@@ -4,8 +4,11 @@
 <mapper namespace="com.hutquan.hut.mapper.ICommentMapper" >
 
     <insert id="insertDynamicComment" parameterType="com.hutquan.hut.pojo.Comment">
-        INSERT INTO comment(message,dynamic_id,`time`,user_id,to_user_id)
-        VALUES (#{message},#{dynamicId},#{time},#{userId},#{toUserId})
+        INSERT INTO comment(message,dynamic_id,`time`,user_id,to_user_id,user_name,to_user_name)
+        VALUES (#{message},#{dynamicId},#{time},#{userId},#{toUserId},#{userName},#{toUserName})
     </insert>
 
+    <select id="queryCommentDynamic" resultType="com.hutquan.hut.pojo.Comment" parameterType="Integer">
+         SELECT * FROM `comment` WHERE dynamic_id = #{dynamicId} ORDER BY `time` DESC
+    </select>
 </mapper>

@@ -59,5 +59,9 @@
         WHERE dynamic.user_id = #{userId}
     </select>
 
+    <delete id="delDynamic" parameterType="Integer">
+        DELETE FROM dynamic WHERE dynamic.dynamic_id = #{dynamicId}
+    </delete>
+
 
 </mapper>
