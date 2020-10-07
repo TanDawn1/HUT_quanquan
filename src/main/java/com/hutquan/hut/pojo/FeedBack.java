@@ -19,7 +19,7 @@ public class FeedBack implements Serializable {
 
     private String message;
 
-    private List<String> images;
+    private String images;
 
     private Long time;
 

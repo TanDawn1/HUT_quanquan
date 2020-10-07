@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--你接口的包名是com.abc.dao,接口名是NameMapper.java，那么你的mapper.xml的namespace应该是com.abc.dao.NameMapper-->
+<mapper namespace="com.hutquan.hut.mapper.IErrorMapper" >
+
+    <insert id="feedBack" parameterType="com.hutquan.hut.pojo.FeedBack">
+
+        INSERT feed_back(user_id,QQ,image,`time`,message)
+        VALUES (#{userId},#{QQ},#{images},#{time},#{message})
+
+    </insert>
+
+</mapper>

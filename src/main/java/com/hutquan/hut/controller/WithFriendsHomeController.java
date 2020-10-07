@@ -87,7 +87,6 @@ public class WithFriendsHomeController {
     /**
      * 关注的人的动态
      * @param pageNum
-     * @param pageSize
      * @param request
      * @return
      */
