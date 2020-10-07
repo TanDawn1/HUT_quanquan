@@ -25,4 +25,6 @@ public interface IWithFriensMapper {
     List<Dynamic> dynamicsBySelf(Integer userId);
 
     int delDynamic(int dynamicId);
+
+    Integer queryUserId(int dynamicId);
 }
