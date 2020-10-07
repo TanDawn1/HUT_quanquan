@@ -76,6 +76,6 @@ public class GeoFriendsCircleServiceImpl implements IGeoFriendsCircleService {
 
     @Override
     public Boolean updateGpsData(User user, Point point) {
-        return 1 == redisUtils.geoAdd(LOCATION, point, user.getUserId().toString());
+        return redisUtils.geoAdd(LOCATION, point, user.getUserId().toString()) >= 0;
     }
 }

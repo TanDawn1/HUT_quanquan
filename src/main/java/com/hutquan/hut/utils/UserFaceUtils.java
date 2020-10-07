@@ -7,7 +7,6 @@ import com.tencentcloudapi.common.profile.ClientProfile;
 import com.tencentcloudapi.common.profile.HttpProfile;
 import com.tencentcloudapi.iai.v20180301.IaiClient;
 import com.tencentcloudapi.iai.v20180301.models.*;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -65,7 +64,7 @@ public class UserFaceUtils {
     }
 
     //删除人员数据
-    public DeleteFaceResponse DeletePerson(Integer uId) {
+    public DeletePersonResponse DeletePerson(Integer uId) {
         try {
             Credential cred = new Credential(secretId, sercretKey);
             HttpProfile httpProfile = new HttpProfile();
@@ -78,9 +77,9 @@ public class UserFaceUtils {
             map.put("PersonId", uId);
 
             String params = JSON.toJSONString(map);
-            DeleteFaceRequest req = DeleteFaceRequest.fromJsonString(params, DeleteFaceRequest.class);
+            DeletePersonRequest req = DeletePersonRequest.fromJsonString(params, DeletePersonRequest.class);
 
-            return client.DeleteFace(req);
+            return client.DeletePerson(req);
         } catch (TencentCloudSDKException e) {
             System.out.println(e.toString());
             return null;

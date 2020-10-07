@@ -1,4 +1,6 @@
 spring:
+  jackson:
+    default-property-inclusion: non_null
   servlet:
     multipart:
       # 上传文件总的最大值

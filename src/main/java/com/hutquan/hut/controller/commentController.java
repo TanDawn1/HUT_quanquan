@@ -33,7 +33,7 @@ public class commentController {
             User user = (User) redisUtils.get(request.getHeader("token"));
             if (user == null) return new ResponseBean(401, "未登录，无权限评论", null);
             if (comment == null || comment.getMessage().equals("")) return new ResponseBean(403, "传入参数不合规范", null);
-            return new ResponseBean(200, "ok", iCommentService.insertDynamicComment(user, comment) == 0 ? "成功" : "未知错误");
+            return new ResponseBean(200, "ok", iCommentService.insertDynamicComment(user, comment) == 0 ? "未知错误" : "成功");
         }catch (Exception e){
             e.printStackTrace();
             return new ResponseBean(500,"未知错误",null);

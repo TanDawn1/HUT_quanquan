@@ -55,9 +55,10 @@ public class UserController {
     @ApiOperation("查看其他用户的信息首页，状态必须为已登录")
     public ResponseBean selectUser(HttpServletRequest request,@PathVariable Integer otherUserId){
         User user = (User) redisUtils.get(request.getHeader("token"));
+        User othUser = null;
         if(user == null) return new ResponseBean(401,"未登录,无权限",null);
         try {
-            User othUser = iUserService.selectUser(otherUserId);
+            othUser = iUserService.selectUser(otherUserId);
             othUser.setFollowCount(Double.valueOf(iUserService.querySelfFollow(othUser)));
             othUser.setSelfFollowCount(Double.valueOf(iUserService.querySelfFollowed(othUser)));
             //是否关注了别人 判断user是否关注otherUser
@@ -66,7 +67,7 @@ public class UserController {
             e.printStackTrace();
             return new ResponseBean(500,"未知错误",user);
         }
-        return new ResponseBean(200,"ok",otherUserId);
+        return new ResponseBean(200,"ok",othUser);
     }
 
 

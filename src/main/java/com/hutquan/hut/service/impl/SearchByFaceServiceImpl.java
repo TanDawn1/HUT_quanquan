@@ -86,6 +86,9 @@ public class SearchByFaceServiceImpl implements ISearchByFaceService {
     public boolean createFace(User user, MultipartFile[] photo) {
         if(user.getUserId() == null) return false;
         if(photo == null) return false;
+        //判断是否已经上传过人脸数据，是则拒绝上传，需要用户删除
+        if(redisUtils.hHasKey("faceImage",user.getUserId().toString()))
+            return false;
         String fileBase64 = null;
         try {
             //腾讯接口需要 Base64编码 将MultipatrFile转为Base64编码
@@ -124,7 +127,7 @@ public class SearchByFaceServiceImpl implements ISearchByFaceService {
 
     @Override
     public String deleFace(User user) {
-        if(user.getUserId() <= 0) return "fail";
+        if(user.getUserId() < 0) return "fail";
         try {//删除
             userFaceUtils.DeletePerson(user.getUserId());
             //删除Redis中的人脸索引

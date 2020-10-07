@@ -183,7 +183,7 @@ public class WithFriendsHomeController {
         //User user = (User) request.getSession().getAttribute("user");
         User user = (User) redisUtils.get(request.getHeader("token"));
         if(user == null){
-            return new ResponseBean(301,"未登录",null);
+            return new ResponseBean(403,"未登录",null);
         }
         return new ResponseBean(200,"ok",
                 iWithFriendsService.likeDynamic(user,dynamicId));
