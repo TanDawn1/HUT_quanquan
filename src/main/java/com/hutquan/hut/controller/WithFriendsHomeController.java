@@ -55,7 +55,6 @@ public class WithFriendsHomeController {
     @GetMapping("/withfriend/dynamic")
     @ApiOperation("热点动态，点赞量最多的20条动态")
     public ResponseBean Dynamic(HttpServletRequest request){
-        //TODO 需要做相关处理，热点动态点赞、评论的人多
         User user = (User) redisUtils.get(request.getHeader("token"));
         //TODO 应该把热点动态的相关数据直接缓存到Redis，定时刷新
         return new ResponseBean(200,"ok",iWithFriendsService.dynamicsByHot(user));

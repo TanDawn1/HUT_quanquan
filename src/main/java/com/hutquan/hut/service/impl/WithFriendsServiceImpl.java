@@ -1,5 +1,7 @@
 package com.hutquan.hut.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.hutquan.hut.mapper.IWithFriensMapper;
@@ -298,21 +300,56 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
      */
     @Override
     public List<Dynamic> dynamicsByHot(User user) {
-        //查找动态表中排名靠前的动态ID，一页20条
-        Set<Object> idSet = redisUtils.zRevrange("dynamic_like", 0L, 19L);
-        List<Dynamic> list = iWithFriensMapper.dynamicsByHot(idSet);
-        for (Dynamic dynamic : list) {
-            //为了提升效率，所以starCount和commentCount都是在Redis中保存的
-            //starCount
-            dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
-            //commentCount
-            dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
-            if (user != null) {
-                if (user.getUserId().equals(dynamic.getUserId())) dynamic.setSelf(true);
-                //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
-                if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null) dynamic.setLike(true);
+        List<Dynamic> list = null;
+        //因为是热点数据，首先查询redis中是否有数据，无则查询数据库
+        //使用分布式锁，因为考虑会部署到多台服务器
+        Object jsondata = redisUtils.get("hot");
+        if(jsondata != null){
+            //jsondata不为null
+            //将jsondata转换为list<Dynamic>
+            list = new ArrayList<>();
+            list = JSONObject.parseArray(JSON.toJSONString(jsondata),Dynamic.class);
+        }else{
+            //在判断一次redis中数据是否为null
+            jsondata = redisUtils.get("hot");
+            if(jsondata == null) {
+                //加分布式锁，防止缓存失效之后数据一次性打到DB
+                String uuid = UUID.randomUUID().toString();
+
+                while(!redisUtils.lock("lock", uuid)){
+                    //如果加锁失败  自旋
+                    //直到加锁成功
+                }
+                //在进行一次判断
+                jsondata = redisUtils.get("hot");
+                if(jsondata == null) {
+                    //查找动态表中排名靠前的动态ID，一页20条
+                    Set<Object> idSet = redisUtils.zRevrange("dynamic_like", 0L, 19L);
+                    list = iWithFriensMapper.dynamicsByHot(idSet);
+                    //缓存入Redis 1小时刷新一次
+                    redisUtils.set("hot", list, 60 * 60L);
+                }
+                //解锁
+                redisUtils.unlock("lock",uuid);
+            }
+            if(list == null)
+                list = JSONObject.parseArray(JSON.toJSONString(jsondata),Dynamic.class);
+            //给list中付取最新的值
+            for (Dynamic dynamic : list) {
+                //为了提升效率，所以starCount和commentCount都是在Redis中保存的
+                //starCount
+                dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
+                //commentCount
+                dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
+                if (user != null) {
+                    if (user.getUserId().equals(dynamic.getUserId())) dynamic.setSelf(true);
+                    //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+                    if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
+                        dynamic.setLike(true);
+                }
             }
         }
+
         return list;
     }
 

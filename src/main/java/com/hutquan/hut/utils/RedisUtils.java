@@ -1,5 +1,6 @@
 package com.hutquan.hut.utils;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -666,5 +667,23 @@ public class RedisUtils {
                        newGeoRadiusArgs().sortDescending().includeDistance());
    }
 
+//================================= redis  ====================================
+    //加锁
+    public boolean lock(String key,String value){
+        // setIfAbsent相当于jedis中的setnx，如果能赋值就返回true，如果已经有值了，就返回false
+        // 即：在判断这个key是不是第一次进入这个方法
+        //第一次，即:这个key还没有被赋值的时候
+        return redisTemplate.opsForValue().setIfAbsent(key, value, Duration.ofMinutes(1));
+    }
 
+    //解锁
+    public void unlock(String key, String value){
+       try{
+            if(redisTemplate.opsForValue().get(key).equals(value)){
+                redisTemplate.opsForValue().getOperations().delete(key);
+           }
+       }catch (Exception e){
+           e.printStackTrace();
+       }
+    }
 }

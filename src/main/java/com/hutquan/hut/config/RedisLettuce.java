@@ -30,7 +30,7 @@ public class RedisLettuce {
 
         //key采用String的序列化方式
         redisTemplate.setKeySerializer(stringRedisSerializer);
-        //value序列化方式采用string
+        //value序列化方式采用jackson
         redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
         //hash的key也采用String的序列化方式
         redisTemplate.setHashKeySerializer(stringRedisSerializer);
