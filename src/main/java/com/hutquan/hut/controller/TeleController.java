@@ -67,6 +67,7 @@ public class TeleController {
     @PostMapping("/tele/login")
     @ApiOperation("手机号验证码登录,token保留30天")
     public ResponseBean yzmLogin(String tele , String yzm){
+        if(tele == null || yzm == null) return new ResponseBean(400,"手机号码或者验证码格式异常",null);
         User user = iTeleService.teleLogin(tele,yzm);
         if(user != null) {
             //生成token

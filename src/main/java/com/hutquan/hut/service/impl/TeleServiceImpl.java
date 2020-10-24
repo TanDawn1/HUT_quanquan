@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Service
 public class TeleServiceImpl implements ITeleService {
@@ -74,6 +75,9 @@ public class TeleServiceImpl implements ITeleService {
     //TODO 将用户信息封装发送到MQ，拆分到消息发送系统
     @Override
     public String sendTele(String tele) {
+        String telepd = "^[1][3,4,5,7,8][0-9]{9}$";
+        if(tele == null || !Pattern.matches(telepd,tele)) return "错误的手机号";
+
         String teleR = "yzm:"+tele;
         String host = "http://intlsms.market.alicloudapi.com";
         String path = "/comms/sms/groupmessaging";

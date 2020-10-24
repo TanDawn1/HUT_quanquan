@@ -334,19 +334,19 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
             }
             if(list == null)
                 list = JSONObject.parseArray(JSON.toJSONString(jsondata),Dynamic.class);
-            //给list中付取最新的值
-            for (Dynamic dynamic : list) {
-                //为了提升效率，所以starCount和commentCount都是在Redis中保存的
-                //starCount
-                dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
-                //commentCount
-                dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
-                if (user != null) {
-                    if (user.getUserId().equals(dynamic.getUserId())) dynamic.setSelf(true);
-                    //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
-                    if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
-                        dynamic.setLike(true);
-                }
+        }
+        //给list中付取最新的值
+        for (Dynamic dynamic : list) {
+            //为了提升效率，所以starCount和commentCount都是在Redis中保存的
+            //starCount
+            dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
+            //commentCount
+            dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
+            if (user != null) {
+                if (user.getUserId().equals(dynamic.getUserId())) dynamic.setSelf(true);
+                //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+                if (redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
+                    dynamic.setLike(true);
             }
         }
 
