@@ -72,7 +72,7 @@ public class WithFriendsHomeController {
     public ResponseBean DynamicByTime(@PathVariable("pageNum") int pageNum,HttpServletRequest request){
         try{
             User user = (User) redisUtils.get(request.getHeader("token"));
-            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.dynamicsByTime(pageNum,20,user);
+            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.dynamicsByTime(pageNum,6,user);
 
             return new ResponseBean(200, "ok", dynamicPageInfo);
 
@@ -97,7 +97,7 @@ public class WithFriendsHomeController {
             return new ResponseBean(403,"未登录",null);
         }
         try {
-            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.condynamic(pageNum, 20, user);
+            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.condynamic(pageNum, 6, user);
             if(dynamicPageInfo != null) {
                 return new ResponseBean(200, "ok", dynamicPageInfo);
             }else {
@@ -115,7 +115,7 @@ public class WithFriendsHomeController {
         User user = (User) redisUtils.get(request.getHeader("token"));
         //TODO 必要的话可以添加黑名单权限相关的东西
         try {
-            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.queryDynamic(userId,pageNum, 20, user);
+            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.queryDynamic(userId,pageNum, 6, user);
 
             return new ResponseBean(200, "ok", dynamicPageInfo);
 

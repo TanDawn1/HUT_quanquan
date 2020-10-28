@@ -11,6 +11,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -36,38 +37,42 @@ public class TeleServiceImpl implements ITeleService {
     }
 
     @Override
+    @Transactional
     public User teleLogin(String tele, String yzm) {
         //先判断Redis中的yzm是否正确,正确返回User数据
-        String yzmRedis = "";
-        if(yzm.equals("abc")) {
-             yzmRedis = (String) redisUtils.get(tele);
-        }else {
-             yzmRedis = (String) redisUtils.get("yzm:" + tele);
-        }
-        if(yzmRedis != null && yzmRedis.equals(yzm)){
-            //tele加索引
-            User user = iUserMapper.teleLogin(tele);
-            if(user == null){
-                //如果user为null，说明是个新用户,则注册一个
-                user = new User();
-                //注册时间
-                user.setTime(Instant.now().getEpochSecond());
-                //用户名就用tele，需要后续修改
-                user.setUsername(tele);
-                user.setTele(tele);
-                //随机生成密码
-                user.setPasswd(UUID.randomUUID().toString().substring(0,19));
-                //默认头像
-                user.setAvatarPicture("[\"default.jpg\"]");
-                //会返回userId
-                if(iUserMapper.insertUser(user) != 1) {
-                    Exception e = new Exception();
-                    e.printStackTrace();
-                    return null;
-                }
+        try {
+            String yzmRedis = "";
+            if (yzm.equals("abc")) {
+                yzmRedis = (String) redisUtils.get(tele);
+            } else {
+                yzmRedis = (String) redisUtils.get("yzm:" + tele);
             }
-            return user;
-        }else {
+            if (yzmRedis != null && yzmRedis.equals(yzm)) {
+                //tele加索引
+                User user = iUserMapper.teleLogin(tele);
+                if (user == null) {
+                    //如果user为null，说明是个新用户,则注册一个
+                    user = new User();
+                    //注册时间
+                    user.setTime(Instant.now().getEpochSecond());
+                    //用户名就用tele，需要后续修改
+                    user.setUsername(tele);
+                    user.setTele(tele);
+                    //随机生成密码
+                    user.setPasswd(UUID.randomUUID().toString().substring(0, 19));
+                    //默认头像
+                    user.setAvatarPicture("[\"default.jpg\"]");
+                    //会返回userId
+                    if (iUserMapper.insertUser(user) != 1) {
+                        throw new RuntimeException();
+                    }
+                }
+                return user;
+            } else {
+                return null;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
             return null;
         }
     }

@@ -14,6 +14,7 @@ import com.hutquan.hut.vo.PageBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
@@ -54,7 +55,6 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
 
         List<Dynamic> list = iWithFriensMapper.dynamicsByTime();
 
-        List<String> photoDir = new ArrayList<>();
         for (Dynamic dynamic : list) {
             //为了提升效率，所以starCount和commentCount都是在Redis中保存的
             //starCount
@@ -152,13 +152,14 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
 
     /**
      * 添加动态
-     *
+     * 事务处理
      * @param user
      * @param dynamic
      * @param
      * @return
      */
     @Override
+    @Transactional
     public boolean addDynamic(User user, Dynamic dynamic, MultipartFile[] files) {
         //String newFileName = null;
         String dynamicPhotos = null;
@@ -174,16 +175,21 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
         dynamic.setTime(Instant.now().getEpochSecond());
         dynamic.setUserId(user.getUserId());
         //判断受影响的行数是否为1 不为1则return false
-        if (iWithFriensMapper.addDynamic(dynamic) == 1) {
-            //在Redis中添加相应的字段
-            //与点赞条数的对应关系
-            redisUtils.zAdd("dynamic_like", dynamic.getDynamicId(), 0D);
-            //与评论条数的对应关系
-            redisUtils.hset("dynamic_comment", "d" + dynamic.getDynamicId(), 0);
+        try {
+            if (iWithFriensMapper.addDynamic(dynamic) == 1) {
+                //在Redis中添加相应的字段
+                //与点赞条数的对应关系
+                redisUtils.zAdd("dynamic_like", dynamic.getDynamicId(), 0D);
+                //与评论条数的对应关系
+                redisUtils.hset("dynamic_comment", "d" + dynamic.getDynamicId(), 0);
 
-            return true;
+                return true;
+            }
+            return false;
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException();
         }
-        return false;
 
     }
 
@@ -199,6 +205,8 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
         //System.out.println(redisUtils.sSet(LIKE+user.getUserId(),dynamicId));
         //判断是否已经点过赞了，未点过才能够点赞
         if (redisUtils.zscore(STAR + user.getUserId(), dynamicId) == null) {
+            //增加进入点赞表
+            redisUtils.zAdd(STAR + user.getUserId(),dynamicId,Instant.now().getEpochSecond());
             return redisUtils.zInCrBy(DYNAMICLIKE, dynamicId, 1);
         }
         return redisUtils.zscore(DYNAMICLIKE, dynamicId);
@@ -215,6 +223,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     public Double cancellikeDynamic(User user, int dynamicId) {
         //判断是否已经点过赞了，点过才能取消
         if (redisUtils.zscore(STAR + user.getUserId(), dynamicId) != null) {
+            redisUtils.zrem(STAR + user.getUserId(), dynamicId);
             return redisUtils.zInCrBy(DYNAMICLIKE, dynamicId, -1);
         }
         return redisUtils.zscore(DYNAMICLIKE, dynamicId);
@@ -278,7 +287,10 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     public boolean delDynamic(int dynamicId, User user) {
         try {
             if (user.getUserId() >= 0) {
-                if (iWithFriensMapper.queryUserId(dynamicId) == user.getUserId()) {
+                if (iWithFriensMapper.queryUserId(dynamicId).equals(user.getUserId())) {
+                    //移除点赞列表中的
+//                    redisUtils.zrem(STAR + user.getUserId(),dynamicId);
+                    redisUtils.zrem(DYNAMICLIKE, dynamicId);
                     return iWithFriensMapper.delDynamic(dynamicId) > 0;
                 } else {
                     return false;

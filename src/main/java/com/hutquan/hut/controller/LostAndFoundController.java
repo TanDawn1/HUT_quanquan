@@ -35,6 +35,7 @@ public class LostAndFoundController {
     // 由于参数中的MultipartFile类型影响了requestbody本应所对应的content-type: application/json
     // 可能是MultipartFile的媒体类型优先级高，会覆盖application/json
     public ResponseBean putLostOrFound(Search search, HttpServletRequest request,@RequestParam(value = "photos",required = false) MultipartFile[] photos){
+        if(search == null) return new ResponseBean(400,"请求信息错误",null);
         User user = (User)redisUtils.get(request.getHeader("token"));
         if(user == null){
             return new ResponseBean(403,"未登录，无权限发布",null);
