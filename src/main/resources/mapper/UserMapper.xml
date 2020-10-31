@@ -59,6 +59,10 @@
          WHERE  xh = #{xh} AND passwd = #{passwd}
     </select>
 
+    <insert id="insertXhUser" parameterType="com.hutquan.hut.pojo.User" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO `user`(username,passwd,`time`,avatar_picture,xh) VALUES (#{username},#{passwd},#{time},#{avatarPicture},#{xh})
+    </insert>
+
     <insert id="insertTele">
         INSERT INTO `tele_tem`(tele,`time`,yzm) VALUES (#{tele},#{time},#{yzm})
         on duplicate key update yzm = #{yzm}, `time` = #{time}

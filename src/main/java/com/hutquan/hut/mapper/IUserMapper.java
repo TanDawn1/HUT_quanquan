@@ -44,4 +44,6 @@ public interface IUserMapper {
     User selectXh(String xh);
 
     User selectXhAndPass(Xh xhl);
+
+    int insertXhUser(User user);
 }

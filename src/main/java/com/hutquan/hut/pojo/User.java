@@ -23,6 +23,8 @@ public class User implements Serializable {
     private String signature;
 
     private String sex;
+    //学号
+    private String xh;
 
     private Long time;
     //附近的人-> 距离字段

@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 public class TeleServiceImpl implements ITeleService {
 
 
-
     private static final String USERLOGIN = "userLogin";
 
     private static Logger logger = LoggerFactory.getLogger(TeleServiceImpl.class);
@@ -38,7 +37,7 @@ public class TeleServiceImpl implements ITeleService {
 
     @Override
     public boolean selectUser(String tele) {
-        if(iUserMapper.teleSelectUser(tele) != null){
+        if (iUserMapper.teleSelectUser(tele) != null) {
             return true;
         }
         return false;
@@ -79,7 +78,7 @@ public class TeleServiceImpl implements ITeleService {
             } else {
                 return null;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -89,19 +88,19 @@ public class TeleServiceImpl implements ITeleService {
     @Override
     public String sendTele(String tele) {
         String telepd = "^[1][3,4,5,7,8][0-9]{9}$";
-        if(tele == null || !Pattern.matches(telepd,tele)) return "错误的手机号";
+        if (tele == null || !Pattern.matches(telepd, tele)) return "错误的手机号";
 
-        String teleR = "yzm:"+tele;
+        String teleR = "yzm:" + tele;
         String host = "http://intlsms.market.alicloudapi.com";
         String path = "/comms/sms/groupmessaging";
         String method = "POST";
-        String appcode = "***";
+        String appcode = "a68b52d6bb0346bdb20cba6fd6a7bf79";
         //取验证码
         String code = MyMiniUtils.randomNumber("0123456789", 6);
 
 //        iUserMapper.insertTele(tele, code, LocalDateTime.now());
         //把验证码存入redis数据库 如果存在就更新 5min过期
-        redisUtils.set(teleR,code,300L);
+        redisUtils.set(teleR, code, 300L);
         System.out.println("验证码是" + code);
         Map<String, String> headers = new HashMap<String, String>();
         //最后在header中的格式(中间是英文空格)为Authorization:APPCODE 83359fd73fe94948385f570e3c139105
@@ -111,7 +110,7 @@ public class TeleServiceImpl implements ITeleService {
         Map<String, String> querys = new HashMap<String, String>();
         Set<String> telenumber = new HashSet<>();
         //+86
-        telenumber.add(86+tele);
+        telenumber.add(86 + tele);
         Set<String> templateSet = new HashSet<>();
         templateSet.add(code);
         //templateSet.add("'0'");
@@ -146,78 +145,98 @@ public class TeleServiceImpl implements ITeleService {
 
     @Override
     public ResponseBean xhLogin(Xh xhl) {
+        //用户判断用户是否是第一次登录系统
+        int f = 1;
         //调用教务系统api
-        String url = "http://218.75.197.123:83/app.do?method=authUser&xh="+xhl.getXh()+"&pwd="+xhl.getPasswd();
+        String url = "http://218.75.197.123:83/app.do?method=authUser&xh=" + xhl.getXh() + "&pwd=" + xhl.getPasswd();
         ResponseBean responseBean = new ResponseBean();
         User user = null;
-        //判断是否第一次登录系统
-        if(redisUtils.sHasKey(USERLOGIN,xhl.getXh())){
-            //请求教务系统验证   教务系统正常的情况下
-            try {
-                String line = HttpClient.doGet(url);
-                JSONObject json = JSONObject.parseObject(line);
-                if(json.get("flag").equals("1")) {
-                    responseBean.setCode(200);
-                    //获取user数据
+
+        try {
+            //判断是否第一次登录系统
+            if(!redisUtils.sHasKey(USERLOGIN,xhl.getXh())){
+                //第一次登录系统
+                f = 0;
+            }
+            String line = HttpClient.doGet(url);
+            JSONObject json = JSONObject.parseObject(line);
+            System.out.println(json.get("success"));
+            if ("true".equals(json.getString("success"))) {
+                responseBean.setCode(200);
+                //获取user数据 不是第一次登录系统
+                if(f == 1){
                     user = iUserMapper.selectXh(xhl.getXh());
-                    if(user.getTele() == null) user.setTele("0");
-                    responseBean.setData(user);
-                }else {
-                    responseBean.setCode(400);
+                }else{
+                    user = new User();
+                    //第一次登录 注册进数据库
+                    if(!saveDB(xhl,user)){
+                        responseBean.setCode(500);
+                    }else{
+                        redisUtils.sSet(USERLOGIN,xhl.getXh());
+                    }
                 }
-                String token = (String) json.get("token");
-                responseBean.setMsg(token);
-                //当token不为-1，且user不为null的时候说明验证成功
-                if(!token.equals("-1") && user != null){
-                    saveToken(token,user);
-                }
-                return responseBean;
-            }catch (Exception e){
-                //教务系统验证 教务系统异常 系统分配token登录
-                logger.info("教务系统异常");
-                //通过保存的xh和密码验证是否成功
-                //密码MD5重新加密
-                xhl.setPasswd(MD5.getMD5(xhl.getPasswd()));
+                if (user.getTele() == null) user.setTele("0");
+                responseBean.setData(user);
+            } else {
+                responseBean.setCode(400);
+            }
+            String token = (String) json.get("token");
+            responseBean.setMsg(token);
+            //当token不为-1，且user不为null的时候说明验证成功
+            if (!token.equals("-1") && user != null) {
+                saveToken(token, user);
+            }
+            return responseBean;
+        } catch (Exception e) {
+            //教务系统验证 教务系统异常 系统分配token登录
+            logger.info("教务系统异常");
+            //通过保存的xh和密码验证是否成功
+            //密码MD5重新加密
+            xhl.setPasswd(MD5.getMD5(xhl.getPasswd()));
+            if(f == 1) {
                 user = iUserMapper.selectXhAndPass(xhl);
-                if(user != null){
-                    responseBean.setCode(200);
-                    String token = UUID.randomUUID() + "";
-                    saveToken(token, user);
-                    responseBean.setMsg(token);
-                }else {
-                    responseBean.setCode(400);
-                    responseBean.setMsg("-1");
-                }
-                return responseBean;
             }
-        }else{
-            //使用教务系统验证密码是否正确
-            try{
-                String line = HttpClient.doGet(url);
-                JSONObject json = JSONObject.parseObject(line);
-
-            }catch (Exception e){
-
+            if (user != null) {
+                responseBean.setCode(200);
+                String token = UUID.randomUUID() + "";
+                saveToken(token, user);
+                responseBean.setMsg(token);
+            } else {
+                responseBean.setCode(400);
+                responseBean.setMsg("-1");
             }
-            //正确就将用户数据存储至数据库 密码MD5加密
-
-
-            redisUtils.set(USERLOGIN,xhl.getXh());
+            return responseBean;
         }
 
-
-        return null;
     }
 
-    public void saveToken(String token, User user){
+    public void saveToken(String token, User user) {
         //将token刷新进redis    30day
-        redisUtils.set(token,user, 30 * 24 * 60 * 60L);
+        redisUtils.set(token, user, 30 * 24 * 60 * 60L);
         //存储token与账号对应关系->一重新登录就刷新
         //查看是否userToken中是否已经存在token，存在就清除该token
-        String oldToken = (String) redisUtils.hget("userToken",user.getUserId().toString());
-        if(oldToken != null) redisUtils.del(oldToken);
-        redisUtils.hset("userToken",user.getUserId().toString(),token);
+        String oldToken = (String) redisUtils.hget("userToken", user.getUserId().toString());
+        if (oldToken != null) redisUtils.del(oldToken);
+        redisUtils.hset("userToken", user.getUserId().toString(), token);
 //        responseBean.setMsg(token);
+    }
+
+    public boolean saveDB(Xh xh,User user){
+       try { //注册时间
+           user.setTime(Instant.now().getEpochSecond());
+           //用户名就用学号，需要后续修改
+           user.setUsername(xh.getXh());
+           //将密码MD5加密后存储
+           user.setPasswd(MD5.getMD5(xh.getPasswd()));
+           //学号
+           user.setXh(xh.getXh());
+           //默认头像
+           user.setAvatarPicture("[\"default.jpg\"]");
+       }catch (Exception e){
+           e.printStackTrace();
+       }
+        //会返回userId
+        return iUserMapper.insertXhUser(user) == 1;
     }
 
 }
