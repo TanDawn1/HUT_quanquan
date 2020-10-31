@@ -1,6 +1,7 @@
 package com.hutquan.hut.controller;
 
 import com.hutquan.hut.pojo.User;
+import com.hutquan.hut.pojo.Xh;
 import com.hutquan.hut.service.ITeleService;
 import com.hutquan.hut.utils.RedisUtils;
 import com.hutquan.hut.vo.ResponseBean;
@@ -8,6 +9,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +26,16 @@ public class TeleController {
 
     @Autowired
     private RedisUtils redisUtils;
+
+    @PostMapping("/tele/xhLogin")
+    @ApiOperation("教务系统账号密码登录")
+    public ResponseBean xhLogin(@RequestBody Xh xhl){
+
+        return iTeleService.xhLogin(xhl);
+
+    }
+
+
 
     /**
      * 发送验证码
@@ -49,12 +61,8 @@ public class TeleController {
             redisUtils.set("number:"+tele,1, 60 * 60L);
         }
 
-        //if(iTeleService.selectUser(tele)){
-        //不判断是否为已存在用户直接发送验证码
             return iTeleService.sendTele(tele);
-        //}
-        // 0 NULL 手机号错误
-       //return new ResponseBean(EnumStatus.RESNULL.getCode(),EnumStatus.RESNULL.getMessage(),null);
+
     }
 
     /**

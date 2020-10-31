@@ -10,6 +10,9 @@ public class ResponseBean {
     private String enCode;
     private Object data;
 
+    public ResponseBean(){
+    }
+
     //需要加密参数的构造函数
     public ResponseBean(long code, String msg, String enCode, Object data) {
         this.code = code;

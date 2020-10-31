@@ -49,7 +49,8 @@ public class SearchByFaceController {
     public ResponseBean viewSelfFace(HttpServletRequest request){
         User user = (User)redisUtils.get(request.getHeader("token"));
         if(user == null) return new ResponseBean(403,"未登录，无权限查看",null);
-        return new ResponseBean(200,"ok",iSearchByFaceService.viewSelfFace(user));
+        String str = iSearchByFaceService.viewSelfFace(user);
+        return new ResponseBean(200,"ok",str == null?"[]":str);
     }
 
     @PostMapping("/face/delface")

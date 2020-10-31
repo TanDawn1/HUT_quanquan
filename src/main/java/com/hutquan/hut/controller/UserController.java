@@ -3,6 +3,7 @@ package com.hutquan.hut.controller;
 import com.github.pagehelper.PageInfo;
 import com.hutquan.hut.pojo.Dynamic;
 import com.hutquan.hut.pojo.User;
+import com.hutquan.hut.pojo.Xh;
 import com.hutquan.hut.service.IUserService;
 import com.hutquan.hut.service.IWithFriendsService;
 import com.hutquan.hut.utils.RedisUtils;

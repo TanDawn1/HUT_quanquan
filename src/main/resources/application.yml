@@ -6,10 +6,10 @@ spring:
       # 上传文件总的最大值
       max-request-size: 100MB
       # 单个文件的最大值
-      max-file-size : 10MB
+      max-file-size : 5MB
 
   redis:
-    host: 123.56.160.202
+    host: ***
     port: 6379
     # Redis数据库索引（默认为0）
     database: 1
@@ -24,7 +24,7 @@ spring:
   datasource:
     username: root
     password: Admin123.
-    url: jdbc:mysql://123.56.160.202:3306/HUT_quan?characterEncoding=UTF-8
+    url: jdbc:mysql://***
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     # 下面为连接池的补充设置，应用到上面所有数据源中

@@ -1,6 +1,8 @@
 package com.hutquan.hut.service;
 
 import com.hutquan.hut.pojo.User;
+import com.hutquan.hut.pojo.Xh;
+import com.hutquan.hut.vo.ResponseBean;
 
 public interface ITeleService {
 
@@ -9,4 +11,6 @@ public interface ITeleService {
     User  teleLogin(String tele,String yzm);
 
     String sendTele(String tele);
+
+    ResponseBean xhLogin(Xh xhl);
 }

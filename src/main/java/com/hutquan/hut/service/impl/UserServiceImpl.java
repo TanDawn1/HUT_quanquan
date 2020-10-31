@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.hutquan.hut.mapper.IUserMapper;
 import com.hutquan.hut.pojo.Follower;
 import com.hutquan.hut.pojo.User;
+import com.hutquan.hut.pojo.Xh;
 import com.hutquan.hut.service.IUserService;
 import com.hutquan.hut.utils.FileUtil;
 import com.hutquan.hut.utils.RedisUtils;

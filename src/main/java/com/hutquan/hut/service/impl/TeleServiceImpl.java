@@ -1,14 +1,16 @@
 package com.hutquan.hut.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.hutquan.hut.mapper.IUserMapper;
 import com.hutquan.hut.pojo.User;
+import com.hutquan.hut.pojo.Xh;
 import com.hutquan.hut.service.ITeleService;
-import com.hutquan.hut.utils.HttpUtils;
-import com.hutquan.hut.utils.MyMiniUtils;
-import com.hutquan.hut.utils.RedisUtils;
+import com.hutquan.hut.utils.*;
 import com.hutquan.hut.vo.ResponseBean;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,12 @@ import java.util.regex.Pattern;
 
 @Service
 public class TeleServiceImpl implements ITeleService {
+
+
+
+    private static final String USERLOGIN = "userLogin";
+
+    private static Logger logger = LoggerFactory.getLogger(TeleServiceImpl.class);
 
     @Autowired
     private IUserMapper iUserMapper;
@@ -87,7 +95,7 @@ public class TeleServiceImpl implements ITeleService {
         String host = "http://intlsms.market.alicloudapi.com";
         String path = "/comms/sms/groupmessaging";
         String method = "POST";
-        String appcode = "a68b52d6bb0346bdb20cba6fd6a7bf79";
+        String appcode = "***";
         //取验证码
         String code = MyMiniUtils.randomNumber("0123456789", 6);
 
@@ -135,4 +143,81 @@ public class TeleServiceImpl implements ITeleService {
         }
 
     }
+
+    @Override
+    public ResponseBean xhLogin(Xh xhl) {
+        //调用教务系统api
+        String url = "http://218.75.197.123:83/app.do?method=authUser&xh="+xhl.getXh()+"&pwd="+xhl.getPasswd();
+        ResponseBean responseBean = new ResponseBean();
+        User user = null;
+        //判断是否第一次登录系统
+        if(redisUtils.sHasKey(USERLOGIN,xhl.getXh())){
+            //请求教务系统验证   教务系统正常的情况下
+            try {
+                String line = HttpClient.doGet(url);
+                JSONObject json = JSONObject.parseObject(line);
+                if(json.get("flag").equals("1")) {
+                    responseBean.setCode(200);
+                    //获取user数据
+                    user = iUserMapper.selectXh(xhl.getXh());
+                    if(user.getTele() == null) user.setTele("0");
+                    responseBean.setData(user);
+                }else {
+                    responseBean.setCode(400);
+                }
+                String token = (String) json.get("token");
+                responseBean.setMsg(token);
+                //当token不为-1，且user不为null的时候说明验证成功
+                if(!token.equals("-1") && user != null){
+                    saveToken(token,user);
+                }
+                return responseBean;
+            }catch (Exception e){
+                //教务系统验证 教务系统异常 系统分配token登录
+                logger.info("教务系统异常");
+                //通过保存的xh和密码验证是否成功
+                //密码MD5重新加密
+                xhl.setPasswd(MD5.getMD5(xhl.getPasswd()));
+                user = iUserMapper.selectXhAndPass(xhl);
+                if(user != null){
+                    responseBean.setCode(200);
+                    String token = UUID.randomUUID() + "";
+                    saveToken(token, user);
+                    responseBean.setMsg(token);
+                }else {
+                    responseBean.setCode(400);
+                    responseBean.setMsg("-1");
+                }
+                return responseBean;
+            }
+        }else{
+            //使用教务系统验证密码是否正确
+            try{
+                String line = HttpClient.doGet(url);
+                JSONObject json = JSONObject.parseObject(line);
+
+            }catch (Exception e){
+
+            }
+            //正确就将用户数据存储至数据库 密码MD5加密
+
+
+            redisUtils.set(USERLOGIN,xhl.getXh());
+        }
+
+
+        return null;
+    }
+
+    public void saveToken(String token, User user){
+        //将token刷新进redis    30day
+        redisUtils.set(token,user, 30 * 24 * 60 * 60L);
+        //存储token与账号对应关系->一重新登录就刷新
+        //查看是否userToken中是否已经存在token，存在就清除该token
+        String oldToken = (String) redisUtils.hget("userToken",user.getUserId().toString());
+        if(oldToken != null) redisUtils.del(oldToken);
+        redisUtils.hset("userToken",user.getUserId().toString(),token);
+//        responseBean.setMsg(token);
+    }
+
 }

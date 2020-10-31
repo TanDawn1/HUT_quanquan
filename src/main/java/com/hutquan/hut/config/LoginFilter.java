@@ -25,6 +25,7 @@ public class LoginFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        int f = 1;
         //httpsr 是 sr的子类，是更适用于http请求的方法
         //里面有转为http设计的接口 getHeard、getSession、getMethod
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
@@ -32,7 +33,7 @@ public class LoginFilter implements Filter {
         token = token == null ? "" : token;
         //为了防止token被获取 从而非法请求我们的服务器
         if(!token.equals("")){
-            System.out.println("进行token用户的校验");
+            //System.out.println("进行token用户的校验");
             User user = (User)redisUtils.get(token);
             if(user != null) {
                 if(!token.equals(redisUtils.hget("userToken",user.getUserId().toString()))){
@@ -42,18 +43,21 @@ public class LoginFilter implements Filter {
                     PrintWriter out = servletResponse.getWriter();
                     //响应数据
                     out.write(str);
+                    f = 0;
+                }else{
+                    //获取时间
+                    long expire = redisUtils.getExpire(token);
+                    //User user = (User) redisUtils.get(httpServletRequest.getHeader("token"));
+                    if(expire > 0 && expire <= 10 * 24 * 60 * 60 ){ //小于10天才会去刷新
+                        //每次请求都要过滤器，所以在过滤器中刷新token的时间 刷新为30天
+                        redisUtils.expire(token,30L);
+                    }
                 }
             }
         }
-        //获取时间
-        long expire = redisUtils.getExpire(token);
-        //User user = (User) redisUtils.get(httpServletRequest.getHeader("token"));
-        if(expire > 0 && expire <= 10 * 24 * 60 * 60 ){ //小于10天才会去刷新
-            //每次请求都要过滤器，所以在过滤器中刷新token的时间 刷新为30天
-            redisUtils.expire(token,30L);
-        }
+
         //无论带没带token都放行
-        filterChain.doFilter(servletRequest,servletResponse);
+        if(f == 1) filterChain.doFilter(servletRequest,servletResponse);
     }
 
 }

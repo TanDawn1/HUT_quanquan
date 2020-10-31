@@ -2,6 +2,7 @@ package com.hutquan.hut.mapper;
 
 import com.hutquan.hut.pojo.Follower;
 import com.hutquan.hut.pojo.User;
+import com.hutquan.hut.pojo.Xh;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -40,4 +41,7 @@ public interface IUserMapper {
 
     List<Follower> queryFollower(Set<Object> idList);
 
+    User selectXh(String xh);
+
+    User selectXhAndPass(Xh xhl);
 }

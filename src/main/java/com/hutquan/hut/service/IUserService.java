@@ -2,6 +2,7 @@ package com.hutquan.hut.service;
 
 import com.hutquan.hut.pojo.Follower;
 import com.hutquan.hut.pojo.User;
+import com.hutquan.hut.pojo.Xh;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

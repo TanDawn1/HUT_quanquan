@@ -49,6 +49,16 @@
          WHERE  tele = #{tele}
     </select>
 
+    <select id="selectXh" resultType="com.hutquan.hut.pojo.User" >
+         SELECT user_id,username,tele,signature,sex,`time`,avatar_picture FROM `user`
+         WHERE  xh = #{xh}
+    </select>
+
+    <select id="selectXhAndPass" resultType="com.hutquan.hut.pojo.User" >
+         SELECT user_id,username,tele,signature,sex,`time`,avatar_picture FROM `user`
+         WHERE  xh = #{xh} AND passwd = #{passwd}
+    </select>
+
     <insert id="insertTele">
         INSERT INTO `tele_tem`(tele,`time`,yzm) VALUES (#{tele},#{time},#{yzm})
         on duplicate key update yzm = #{yzm}, `time` = #{time}
