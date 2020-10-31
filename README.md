@@ -18,6 +18,6 @@ sql文件在项目文档中
 学校教务系统验证(强智)接口: https://github.com/TLingC/QZAPI
 - 兼职信息和对动态信息的审查并未完成
 - 兼职信息管理系统并未完成
-- 消息分发系统还未达到预期效果(参考的GitChat中大佬的)
+- 消息分发系统还未达到预期效果(参考的GitChat中大佬的): https://github.com/TanDawn1/imserver
 ![image](https://github.com/TanDawn1/HUT_quanquan/blob/master/Minds%20.png)
 
