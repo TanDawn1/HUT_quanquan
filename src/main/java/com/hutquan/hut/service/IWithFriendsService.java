@@ -31,4 +31,6 @@ public interface IWithFriendsService {
     PageBean<Dynamic> queryDynamic(int userId, int pageNum, int pageSize, User user);
 
     boolean delDynamic(int dynamicId, User user);
+
+    Dynamic dynamicDetail(User user,int dynamicId);
 }

@@ -12,11 +12,7 @@ public class Follower implements Serializable {
 
     private Integer userId;
 
-    private String tele;
-
     private String username;
-
-    private String passwd;
     //头像地址
     private String avatarPicture;
     //个性签名

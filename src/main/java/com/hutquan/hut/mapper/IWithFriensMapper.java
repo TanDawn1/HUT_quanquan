@@ -27,4 +27,6 @@ public interface IWithFriensMapper {
     int delDynamic(int dynamicId);
 
     Integer queryUserId(int dynamicId);
+
+    Dynamic queryDynamicDetail(int dynamicId);
 }

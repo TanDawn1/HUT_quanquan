@@ -145,6 +145,7 @@ public class TeleServiceImpl implements ITeleService {
 
     @Override
     public ResponseBean xhLogin(Xh xhl) {
+        logger.info(xhl.getXh() + "abc:"+xhl.getPasswd()+":adqeqrq");
         //用户判断用户是否是第一次登录系统
         int f = 1;
         //调用教务系统api

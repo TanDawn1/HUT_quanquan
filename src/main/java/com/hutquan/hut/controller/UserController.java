@@ -42,8 +42,10 @@ public class UserController {
     public ResponseBean selfUser(HttpServletRequest request){
         User user = (User) redisUtils.get(request.getHeader("token"));
         try {
-            user.setFollowCount(Double.valueOf(iUserService.querySelfFollow(user)));
-            user.setSelfFollowCount(Double.valueOf(iUserService.querySelfFollowed(user)));
+            //该用户关注了多少人
+            user.setFollowCount(Double.valueOf(iUserService.querySelfFollowed(user)));
+            //有多少人关注了该用户
+            user.setSelfFollowCount(Double.valueOf(iUserService.querySelfFollow(user)));
             //自己不会关注自己，所以不添加是否关注的字段
         }catch (Exception e){
             e.printStackTrace();
@@ -59,9 +61,13 @@ public class UserController {
         User othUser = null;
         if(user == null) return new ResponseBean(401,"未登录,无权限",null);
         try {
+            //TODO 可优化
             othUser = iUserService.selectUser(otherUserId);
-            othUser.setFollowCount(Double.valueOf(iUserService.querySelfFollow(othUser)));
-            othUser.setSelfFollowCount(Double.valueOf(iUserService.querySelfFollowed(othUser)));
+            if(othUser == null) return new ResponseBean(400,"无此用户",null);
+            //该用户关注了多少人
+            othUser.setFollowCount(Double.valueOf(iUserService.querySelfFollowed(othUser)));
+            //有多少人关注了该用户
+            othUser.setSelfFollowCount(Double.valueOf(iUserService.querySelfFollow(othUser)));
             //是否关注了别人 判断user是否关注otherUser
             othUser.setFollowed(iUserService.followed(user.getUserId(),otherUserId));
         }catch (Exception e){
@@ -198,6 +204,16 @@ public class UserController {
             return new ResponseBean(400,"fail,未登录",null);
         }
         return new ResponseBean(200,"success",iUserService.queryFollower(user.getUserId(),0L,-1L));
+    }
+
+    @GetMapping("/user/followered/{pageNum}")
+    @ApiOperation("查看哪些用户关注了自己")
+    public ResponseBean queryFollowered(HttpServletRequest request,@PathVariable("pageNum") Long pageNum){
+        User user = (User) redisUtils.get(request.getHeader("token"));
+        if(user == null || pageNum == null){
+            return new ResponseBean(400,"fail",null);
+        }
+        return new ResponseBean(200,"success",iUserService.queryFollowered(user.getUserId(),pageNum));
     }
 
     /**

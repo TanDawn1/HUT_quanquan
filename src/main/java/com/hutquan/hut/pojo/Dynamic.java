@@ -3,6 +3,7 @@ package com.hutquan.hut.pojo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 动态表
@@ -29,6 +30,8 @@ public class Dynamic implements Serializable {
     private Integer commentCount;
 
     private User user;
+
+    private List<Comment> comment;
 
     //附近的人-> 距离字段
     private Double distance;

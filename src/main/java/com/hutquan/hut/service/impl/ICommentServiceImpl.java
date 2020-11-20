@@ -32,7 +32,7 @@ public class ICommentServiceImpl implements ICommentService {
             //写入数据库
             iCommentMapper.insertDynamicComment(comment);
             //更新Redis
-            redisUtils.hincr(DYNAMICCOMMENT,comment.getDynamicId().toString(),1);
+            redisUtils.hincr(DYNAMICCOMMENT,"d" + comment.getDynamicId().toString(),1);
             return 1;
         }catch (Exception e){
             e.printStackTrace();

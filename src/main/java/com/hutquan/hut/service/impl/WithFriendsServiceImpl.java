@@ -23,10 +23,7 @@ import java.util.*;
 @Service
 public class WithFriendsServiceImpl implements IWithFriendsService {
 
-    @Value("${uploade.dynamicPhoto.dir}")
-    private String dynamicPhoto;
-
-    private static final String FLLOW = "fllow:";
+    private static final String FLLOW = "follow:";
 
     private static final String STAR = "star:";
 
@@ -118,10 +115,12 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     @Override
     public boolean addConcern(User user, int concernUserId) {
         try {
+            // 查询是否已经关注过
+            if(redisUtils.zscore(FLLOW + concernUserId,concernUserId) != null) return true;
             //存入用户的关注列表 关注的越早排序越靠前
             redisUtils.lSet(SELFFOLLOW + user.getUserId(), concernUserId);
-            //存入被关注用户列表
-            redisUtils.zAdd(FLLOW + concernUserId, user.getUserId().toString(), Instant.now().getEpochSecond());
+            // 存入被关注用户列表
+            redisUtils.zAdd(FLLOW + concernUserId, user.getUserId(), Instant.now().getEpochSecond());
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -139,10 +138,10 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     @Override
     public boolean remConcern(User user, int concernUserId) {
         try {
-            //删除用户的关注列表指定用户
+            //删除用户的关注列表指定用户  count = 0 : 移除表中所有与 VALUE 相等的值
             redisUtils.lRemove(SELFFOLLOW + user.getUserId(), 0, concernUserId);
             //删除被关注用户列表中的指定用户 TODO 其实可以不用移除 参考 wechat
-            redisUtils.zrem(FLLOW + concernUserId, user.getUserId().toString());
+            redisUtils.zrem(FLLOW + concernUserId, user.getUserId());
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -153,6 +152,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     /**
      * 添加动态
      * 事务处理
+     *
      * @param user
      * @param dynamic
      * @param
@@ -186,7 +186,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
                 return true;
             }
             return false;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
@@ -206,7 +206,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
         //判断是否已经点过赞了，未点过才能够点赞
         if (redisUtils.zscore(STAR + user.getUserId(), dynamicId) == null) {
             //增加进入点赞表
-            redisUtils.zAdd(STAR + user.getUserId(),dynamicId,Instant.now().getEpochSecond());
+            redisUtils.zAdd(STAR + user.getUserId(), dynamicId, Instant.now().getEpochSecond());
             return redisUtils.zInCrBy(DYNAMICLIKE, dynamicId, 1);
         }
         return redisUtils.zscore(DYNAMICLIKE, dynamicId);
@@ -298,10 +298,29 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
             } else {
                 return false;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public Dynamic dynamicDetail(User user, int dynamicId) {
+
+        Dynamic dynamic = iWithFriensMapper.queryDynamicDetail(dynamicId);
+        //为了提升效率，所以starCount和commentCount都是在Redis中保存的
+        if(dynamic == null) return dynamic;
+        //starCount
+        dynamic.setStarCount(redisUtils.zscore("dynamic_like", dynamic.getDynamicId()).intValue());
+        //commentCount
+        dynamic.setCommentCount((Integer) redisUtils.hget("dynamic_comment", "d" + dynamic.getDynamicId()));
+        if (user != null && user.getUserId().equals(dynamic.getUserId()))
+            dynamic.setSelf(true);
+        //通过查找Redis中的点赞列表，判断用户是否给该动态点赞 O(1)的效率
+        if (user != null && redisUtils.zscore(STAR + user.getUserId(), dynamic.getDynamicId()) != null)
+            dynamic.setLike(true);
+
+        return dynamic;
     }
 
     /**
@@ -316,25 +335,25 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
         //因为是热点数据，首先查询redis中是否有数据，无则查询数据库
         //使用分布式锁，因为考虑会部署到多台服务器
         Object jsondata = redisUtils.get("hot");
-        if(jsondata != null){
+        if (jsondata != null) {
             //jsondata不为null
             //将jsondata转换为list<Dynamic>
             list = new ArrayList<>();
-            list = JSONObject.parseArray(JSON.toJSONString(jsondata),Dynamic.class);
-        }else{
+            list = JSONObject.parseArray(JSON.toJSONString(jsondata), Dynamic.class);
+        } else {
             //在判断一次redis中数据是否为null
             jsondata = redisUtils.get("hot");
-            if(jsondata == null) {
+            if (jsondata == null) {
                 //加分布式锁，防止缓存失效之后数据一次性打到DB
                 String uuid = UUID.randomUUID().toString();
 
-                while(!redisUtils.lock("lock", uuid)){
+                while (!redisUtils.lock("lock", uuid)) {
                     //如果加锁失败  自旋
                     //直到加锁成功
                 }
                 //在进行一次判断
                 jsondata = redisUtils.get("hot");
-                if(jsondata == null) {
+                if (jsondata == null) {
                     //查找动态表中排名靠前的动态ID，一页20条
                     Set<Object> idSet = redisUtils.zRevrange("dynamic_like", 0L, 19L);
                     list = iWithFriensMapper.dynamicsByHot(idSet);
@@ -342,10 +361,10 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
                     redisUtils.set("hot", list, 60 * 60L);
                 }
                 //解锁
-                redisUtils.unlock("lock",uuid);
+                redisUtils.unlock("lock", uuid);
             }
-            if(list == null)
-                list = JSONObject.parseArray(JSON.toJSONString(jsondata),Dynamic.class);
+            if (list == null)
+                list = JSONObject.parseArray(JSON.toJSONString(jsondata), Dynamic.class);
         }
         //给list中付取最新的值
         for (Dynamic dynamic : list) {

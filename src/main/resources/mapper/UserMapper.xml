@@ -95,7 +95,16 @@
     </update>
 
     <select id="queryFollower" resultType="com.hutquan.hut.pojo.Follower">
-        SELECT user_id,tele,username,avatar_picture,signature,sex FROM `user`
+        SELECT user_id,username,avatar_picture,signature,sex FROM `user`
+        WHERE user_id
+        in
+        <foreach collection ="collection" item = "idList" open = "(" close=")" separator=",">
+            #{idList}
+        </foreach>
+    </select>
+
+    <select id="queryFollowered" resultType="com.hutquan.hut.pojo.Follower">
+        SELECT user_id,username,avatar_picture,signature,sex FROM `user`
         WHERE user_id
         in
         <foreach collection ="collection" item = "idList" open = "(" close=")" separator=",">

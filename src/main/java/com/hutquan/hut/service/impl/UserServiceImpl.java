@@ -3,10 +3,12 @@ package com.hutquan.hut.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.hutquan.hut.mapper.IUserMapper;
 import com.hutquan.hut.pojo.Follower;
+import com.hutquan.hut.pojo.FollowerPage;
 import com.hutquan.hut.pojo.User;
 import com.hutquan.hut.pojo.Xh;
 import com.hutquan.hut.service.IUserService;
 import com.hutquan.hut.utils.FileUtil;
+import com.hutquan.hut.utils.RedisPagination;
 import com.hutquan.hut.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +34,9 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private RedisUtils redisUtils;
+
+    @Autowired
+    private RedisPagination redisPagination;
 
     @Override
     public User selectUser(int userId) {
@@ -94,10 +99,23 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public List<Follower> queryFollower(Integer userId, Long l, Long l1) {
-
-        Set<Object> followId = redisUtils.zRange(FOLLOW+userId,l, l1);
-
+        if(userId == null) return null;
+        //Set<Object> followId = redisUtils.zRange(FOLLOW+userId,l, l1);
+          List<Object> followId = redisUtils.lGet(SELFFOLLOW + userId,l,l1);
         return iUserMapper.queryFollower(followId);
+    }
+
+    @Override
+    public FollowerPage queryFollowered(Integer userId, Long pageNum) {
+        if(userId == null) return null;
+        FollowerPage followerPage = redisPagination.redisPage(pageNum,userId);
+        if (followerPage == null) return null;
+        Set<Object> followedId = redisUtils.zRange(FOLLOW + userId,followerPage.getStart(),followerPage.getEnd());
+        if(followedId == null || followedId.size() == 0) return null;
+        List<Follower> list = iUserMapper.queryFollowered(followedId);
+        followerPage.setSize(list.size());
+        followerPage.setFollowers(list);
+        return followerPage;
     }
 
     @Override

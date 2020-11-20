@@ -39,11 +39,13 @@ public interface IUserMapper {
 
     int upHeadUrl(String headUrl,int userId);
 
-    List<Follower> queryFollower(Set<Object> idList);
+    List<Follower> queryFollower(List<Object> idList);
 
     User selectXh(String xh);
 
     User selectXhAndPass(Xh xhl);
 
     int insertXhUser(User user);
+
+    List<Follower> queryFollowered(Set<Object> followedId);
 }

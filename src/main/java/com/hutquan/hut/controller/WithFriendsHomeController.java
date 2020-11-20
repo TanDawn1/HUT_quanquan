@@ -62,6 +62,20 @@ public class WithFriendsHomeController {
     }
 
     /**
+     * 根据动态ID查询指定动态
+     * @param request
+     * @param dynamicId
+     * @return
+     */
+    @GetMapping("/withfriend/dynamic/{dynamicId}")
+    @ApiOperation("根据动态ID查询指定动态 调用会同时获取最近的十条评论")
+    public ResponseBean dynamicDetail(HttpServletRequest request,@PathVariable("dynamicId") Integer dynamicId){
+        User user = (User) redisUtils.get(request.getHeader("token"));
+        if(dynamicId == null) return new ResponseBean(400,"客户端错误",null);
+        return new ResponseBean(200,"ok",iWithFriendsService.dynamicDetail(user,dynamicId));
+    }
+
+    /**
      * 按时间顺序
      * @param pageNum
      * @param request
@@ -110,12 +124,12 @@ public class WithFriendsHomeController {
     }
 
     @GetMapping("/withfriend/querydyamic/{userId}/{pageNum}")
-    @ApiOperation("查询他人的动态,可以不登陆查看,userId指的是被查看动态的用户的用户Id")
+    @ApiOperation("查询指定用户的动态,可以不登陆查看,userId指的是被查看动态的用户的用户Id")
     public ResponseBean queryDynamic(@PathVariable("userId") int userId,@PathVariable("pageNum") int pageNum, HttpServletRequest request){
         User user = (User) redisUtils.get(request.getHeader("token"));
         //TODO 必要的话可以添加黑名单权限相关的东西
         try {
-            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.queryDynamic(userId,pageNum, 6, user);
+            PageBean<Dynamic> dynamicPageInfo = iWithFriendsService.queryDynamic(userId,pageNum, 3, user);
 
             return new ResponseBean(200, "ok", dynamicPageInfo);
 

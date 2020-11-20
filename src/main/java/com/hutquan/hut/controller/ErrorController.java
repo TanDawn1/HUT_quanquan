@@ -15,15 +15,15 @@ import org.springframework.web.multipart.MultipartFile;
  * 错误页面
  */
 @RestController
-public class ErrorController {
+public class ErrorController{
 
     @Autowired
     private IErrorService iErrorService;
 
-    @GetMapping("/error/errorauth")
+    @GetMapping("/error")
     @ApiOperation("发送异常错误调用该接口")
     public ResponseBean errorAuth(){
-        return new ResponseBean(403,"无权限",null);
+        return new ResponseBean(500,"错误的请求",null);
     }
 
     @PostMapping("/error/feedbcak")

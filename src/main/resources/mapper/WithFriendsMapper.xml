@@ -21,6 +21,33 @@
             </association>
         </resultMap>
 
+    <resultMap id="DynamicDetail" type="com.hutquan.hut.pojo.Dynamic" >
+        <!-- 结果集的主键 -->
+        <id column="dynamic_id" property="dynamicId" jdbcType="INTEGER" />
+        <!-- 普通的列  -column 是数据库中字段， property是实体类中字段-->
+        <result column="message" property="message" jdbcType="VARCHAR" />
+        <result column="user_id" property="userId" jdbcType="INTEGER" />
+        <result column="time" property="time" jdbcType="INTEGER" />
+        <result column="images" property="images" jdbcType="VARCHAR" />
+        <result column="label" property="label" jdbcType="VARCHAR"/>
+        <association property="user" javaType="com.hutquan.hut.pojo.User">
+            <id column="user_id" property="userId" jdbcType="INTEGER" />
+            <!-- 普通的列  -column 是数据库中字段， property是实体类中字段-->
+            <result column="avatar_picture" property="avatarPicture" jdbcType="VARCHAR" />
+            <result column="username" property="username" jdbcType="VARCHAR" />
+        </association>
+        <!--        一对多         -->
+        <collection property="comment" javaType="ArrayList" ofType="com.hutquan.hut.pojo.Comment">
+            <id column="comment_id" property="commentId" jdbcType="INTEGER"/>
+            <result column="cmessage" property="message" jdbcType="VARCHAR"/>
+            <result column="ctime" property="time" jdbcType="INTEGER"/>
+            <result column="user_name" property="userName" jdbcType="VARCHAR"/>
+            <result column="to_user_name" property="toUserName" jdbcType="VARCHAR"/>
+            <result column="cuserId" property="userId" jdbcType="INTEGER"/>
+            <result column="to_user_id" property="toUserId" jdbcType="INTEGER"/>
+        </collection>
+    </resultMap>
+
     <select id="dynamicsByLike" resultType="com.hutquan.hut.pojo.Dynamic">
 --         SELECT * FROM `dynamic` WHERE dynamic_id in
     </select>
@@ -56,7 +83,8 @@
 
     <select id="dynamicsBySelf" resultMap="Dynamics">
         SELECT dynamic.*,`user`.avatar_picture,`user`.username FROM dynamic,`user`
-        WHERE dynamic.user_id = #{userId}
+        WHERE dynamic.user_id = #{userId} AND dynamic.user_id = `user`.user_id
+        ORDER BY dynamic.time DESC
     </select>
 
     <delete id="delDynamic" parameterType="Integer">
@@ -65,6 +93,16 @@
 
     <select id="queryUserId" parameterType="Integer" resultType="Integer">
         SELECT dynamic.user_id FROM  dynamic WHERE dynamic.dynamic_id = #{dynamicId}
+    </select>
+
+    <select id="queryDynamicDetail" resultMap="DynamicDetail" parameterType="int">
+         SELECT dynamic.*, `user`.avatar_picture,`user`.username,
+         `comment`.comment_id, `comment`.message AS cmessage,`comment`.time AS ctime,
+         `comment`.user_name, `comment`.to_user_name,`comment`.user_id
+         AS cuserId,`comment`.to_user_id
+         FROM (dynamic JOIN `user` ON dynamic.user_id = `user`.user_id)
+         LEFT JOIN `comment` ON dynamic.dynamic_id = `comment`.dynamic_id
+         WHERE dynamic.dynamic_id = #{dynamicId} ORDER BY ctime DESC LIMIT 10
     </select>
 
 
