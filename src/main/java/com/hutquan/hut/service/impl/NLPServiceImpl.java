@@ -26,7 +26,7 @@ public class NLPServiceImpl implements INLPService {
     public String NLPAnalysis(String str, User user) {
 
         try {
-            Credential cred = new Credential("AKIDSjT0wfIRRE2fKnEvyf9Yhh3A8qHUqMab", "u63j9LI3YnlW3JJ9i83i6E4KI0Unpa6R");
+            Credential cred = new Credential("*", "*");
 
             HttpProfile httpProfile = new HttpProfile();
             httpProfile.setEndpoint("nlp.tencentcloudapi.com");
