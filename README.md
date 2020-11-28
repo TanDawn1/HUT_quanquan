@@ -33,8 +33,6 @@ sql文件在项目文档中
 
 - 对于消息通知系统，其实也可以实现让点赞通知、评论通知，只不过得每个用户评论之后把数据推送至队列，在消息通知系统一条条去消费，效率可能比较低
 
-- 
-
 注意项
 
 - Java 9版本之后Base64Encoder和Base64Decoder无法继续使用，在MyMiniUtils中BASE64Encoder可以修改为Encoder
