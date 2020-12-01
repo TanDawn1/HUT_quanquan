@@ -11,6 +11,8 @@ import com.hutquan.hut.service.IWithFriendsService;
 import com.hutquan.hut.utils.FileUtil;
 import com.hutquan.hut.utils.RedisUtils;
 import com.hutquan.hut.vo.PageBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,8 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
     private static final String SELFFOLLOW = "selfFollow:";
 
     private static final String DYNAMICLIKE = "dynamic_like";
+
+    private Logger logger = LoggerFactory.getLogger(WithFriendsServiceImpl.class);
 
     @Autowired
     private IWithFriensMapper iWithFriensMapper;
@@ -346,22 +350,26 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
             if (jsondata == null) {
                 //加分布式锁，防止缓存失效之后数据一次性打到DB
                 String uuid = UUID.randomUUID().toString();
-
-                while (!redisUtils.lock("lock", uuid)) {
-                    //如果加锁失败  自旋
-                    //直到加锁成功
+                try {
+                    while (!redisUtils.lock("lock", uuid)) {
+                        //如果加锁失败  自旋
+                        //直到加锁成功
+                    }
+                    //在进行一次判断
+                    jsondata = redisUtils.get("hot");
+                    if (jsondata == null) {
+                        //查找动态表中排名靠前的动态ID，一页20条
+                        Set<Object> idSet = redisUtils.zRevrange("dynamic_like", 0L, 19L);
+                        list = iWithFriensMapper.dynamicsByHot(idSet);
+                        //缓存入Redis 1小时刷新一次
+                        redisUtils.set("hot", list, 60 * 60L);
+                    }
+                } catch (Exception e){
+                    logger.info("加锁之后 处理过程出现异常");
+                }finally {
+                    //无论如何都需要 解锁
+                    redisUtils.unlock("lock",uuid);
                 }
-                //在进行一次判断
-                jsondata = redisUtils.get("hot");
-                if (jsondata == null) {
-                    //查找动态表中排名靠前的动态ID，一页20条
-                    Set<Object> idSet = redisUtils.zRevrange("dynamic_like", 0L, 19L);
-                    list = iWithFriensMapper.dynamicsByHot(idSet);
-                    //缓存入Redis 1小时刷新一次
-                    redisUtils.set("hot", list, 60 * 60L);
-                }
-                //解锁
-                redisUtils.unlock("lock", uuid);
             }
             if (list == null)
                 list = JSONObject.parseArray(JSON.toJSONString(jsondata), Dynamic.class);

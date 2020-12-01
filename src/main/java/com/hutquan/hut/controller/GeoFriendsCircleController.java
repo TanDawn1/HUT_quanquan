@@ -6,6 +6,8 @@ import com.hutquan.hut.utils.RedisUtils;
 import com.hutquan.hut.vo.ResponseBean;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,9 @@ import javax.servlet.http.HttpServletRequest;
  */
 @RestController
 public class GeoFriendsCircleController {
+
+
+    private Logger logger = LoggerFactory.getLogger(GeoFriendsCircleController.class);
 
     @Autowired
     private IGeoFriendsCircleService iGeoFriendsCircleService;
@@ -38,6 +43,7 @@ public class GeoFriendsCircleController {
     @PostMapping("/geo/upGpsData")
     @ApiOperation("上传位置数据，经纬度 x经度 y纬度")
     public ResponseBean updateGpsData(HttpServletRequest request, @RequestBody Point point){
+        logger.info(point.toString());
         User user = (User) redisUtils.get(request.getHeader("token"));
         if(user == null) return new ResponseBean(401,"未登录",null);
         return new ResponseBean(200,"ok",iGeoFriendsCircleService.updateGpsData(user,point));

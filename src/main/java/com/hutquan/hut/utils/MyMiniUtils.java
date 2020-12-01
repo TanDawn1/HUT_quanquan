@@ -1,9 +1,9 @@
 package com.hutquan.hut.utils;
 
 import org.springframework.web.multipart.MultipartFile;
-import sun.misc.BASE64Encoder;
 
 import java.io.*;
+import java.util.Base64;
 import java.util.Objects;
 import java.util.Random;
 
@@ -92,9 +92,9 @@ public class MyMiniUtils {
             e.printStackTrace();
         }
         // 对字节数组Base64编码
-        BASE64Encoder encoder = new BASE64Encoder();
+        Base64.Encoder encoder = Base64.getEncoder();
         // 返回Base64编码过的字节数组字符串
-        return encoder.encode(Objects.requireNonNull(data));
+        return encoder.encodeToString(Objects.requireNonNull(data));
     }
 
 }

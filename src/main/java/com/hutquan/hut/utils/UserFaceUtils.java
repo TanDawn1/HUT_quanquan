@@ -1,12 +1,15 @@
 package com.hutquan.hut.utils;
 
 import com.alibaba.fastjson.JSON;
+import com.hutquan.hut.pojo.User;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
 import com.tencentcloudapi.common.profile.HttpProfile;
 import com.tencentcloudapi.iai.v20180301.IaiClient;
 import com.tencentcloudapi.iai.v20180301.models.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -20,6 +23,9 @@ import java.util.Map;
  */
 @Component
 public class UserFaceUtils {
+
+
+    private Logger logger = LoggerFactory.getLogger(UserFaceUtils.class);
 
     @Autowired
     private RedisUtils redisUtils;
@@ -50,7 +56,8 @@ public class UserFaceUtils {
             inputMap.put("PersonId", uId);
             inputMap.put("Gender",sex);
             inputMap.put("Image", imgBase64);
-            System.out.println("map:" + JSON.toJSONString(inputMap));
+            logger.info(inputMap.get("personName") +","+inputMap.get("PersonId"));
+
             String params = JSON.toJSONString(inputMap);
             CreatePersonRequest req = CreatePersonRequest.fromJsonString(params, CreatePersonRequest.class);
 

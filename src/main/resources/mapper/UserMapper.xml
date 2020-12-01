@@ -69,23 +69,18 @@
     </insert>
 
     <update id="updataUser" parameterType="com.hutquan.hut.pojo.User">
-        UPDATE `user` SET
-        <if test="user_name != null">
-            user_name = #{username},
+        UPDATE `user`
+        <trim prefix="set" suffixOverrides=",">
+        <if test="username != null">
+            username = #{username},
         </if>
         <if test="signature != null">
             signature = #{signature},
         </if>
-        <if test="avatar_picture != null">
-            avatar_picture = #{avatarPicture},
-        </if>
         <if test="sex != null">
             sex = #{sex},
         </if>
-        <if test="passwd != null">
-            passd = #{passwd},
-        </if>
-        1 = 1
+        </trim>
         WHERE user_id = #{userId}
     </update>
 

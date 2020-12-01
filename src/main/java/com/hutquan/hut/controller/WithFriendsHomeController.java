@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Enumeration;
 
 
 /**
@@ -35,6 +36,12 @@ public class WithFriendsHomeController {
     @PostMapping("/withfriend/releasedc")
     @ApiOperation("发布动态 ->图片为非必要上传项 这里因为服务器负载的原因不接入地址数据")
     public  ResponseBean releaseDynamic(Dynamic dynamic, @RequestParam(value = "file",required = false) MultipartFile[] files, HttpServletRequest request){
+        Enumeration<String> headerNames=request.getHeaderNames();//获取键的名字
+        while(headerNames.hasMoreElements()){
+            String headerName= headerNames.nextElement();
+            String headerValue=request.getHeader(headerName);
+            System.out.println(headerName+":"+headerValue);
+        }
         User user = (User) redisUtils.get(request.getHeader("token"));
         if(user == null) return new ResponseBean(401,"未登录",null);
         //User user = (User) request.getSession().getAttribute("user");

@@ -42,10 +42,14 @@ public class UserController {
     public ResponseBean selfUser(HttpServletRequest request){
         User user = (User) redisUtils.get(request.getHeader("token"));
         try {
+            Long selfFollow = iUserService.querySelfFollowed(user);
+            Long selfFollowed = iUserService.querySelfFollow(user);
+            if(selfFollow == null) selfFollow = 0L;
+            if(selfFollowed == null) selfFollowed = 0L;
             //该用户关注了多少人
-            user.setFollowCount(Double.valueOf(iUserService.querySelfFollowed(user)));
+            user.setFollowCount(Double.valueOf(selfFollowed));
             //有多少人关注了该用户
-            user.setSelfFollowCount(Double.valueOf(iUserService.querySelfFollow(user)));
+            user.setSelfFollowCount(Double.valueOf(selfFollow));
             //自己不会关注自己，所以不添加是否关注的字段
         }catch (Exception e){
             e.printStackTrace();
@@ -149,13 +153,14 @@ public class UserController {
         //获取老的数据
         User olduser = (User) redisUtils.get(request.getHeader("token"));
         if(olduser != null) {
+            user.setUserId(olduser.getUserId());
             if (iUserService.updataUser(user)) {
                 //更新Redis中的数据  对user1和user进行对比
-                if(!user.getSex().equals(olduser.getSex()) && user.getSex() != null)
+                if(user.getSex() != null && !user.getSex().equals(olduser.getSex()))
                     olduser.setSex(user.getSex());
-                if(!user.getUsername().equals(olduser.getUsername()) && user.getUsername() != null)
+                if(user.getUsername() != null && !user.getUsername().equals(olduser.getUsername()))
                     olduser.setUsername(user.getUsername());
-                if(!user.getSignature().equals(olduser.getSignature()) && user.getSignature() != null)
+                if(user.getSignature() != null && !user.getSignature().equals(olduser.getSignature()))
                     olduser.setSignature(user.getSignature());
                 //刷新token对应的user数据
                 redisUtils.set(request.getHeader("token"),olduser);
@@ -184,6 +189,9 @@ public class UserController {
         if(user1 != null) {
             String url = iUserService.updataHeadPhoto(user1,file);
             if(url != null){
+                //更新token对应的数据
+                user1.setAvatarPicture(url);
+                redisUtils.set(request.getHeader("token"),user1);
                 return new ResponseBean(200,"ok",url);
             }else{
                 return new ResponseBean(500,"fail",null);
