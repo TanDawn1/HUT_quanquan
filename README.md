@@ -33,13 +33,52 @@ sql文件在项目文档中
 
 - 对于图片数据应该存储两份: 一份缩略图、一份去除相关信息的原图 这样客户端在点击详情之后在获取原图，在网络不好的情况下体验会好一点
 
+- 对于聊天记录 在IM系统中应该开启定时转存的功能，每天凌晨3：00将Redis中的里聊天数据转存到MySQL中，聊天记录全部存储在Redis不合适(IM系统中已有相关代码 只不过未启用)
+
+- 群发信息（系统向所有用户推送指定信息）需要改变方案 用户在线直接获取用户websocketsession转发消息，不在线就将数据存储到用户未读信息key，未读信息也应该每天固定时间刷新到MySQL数据库
+
 - 对于消息通知系统，其实也可以实现让点赞通知、评论通知，只不过得每个用户评论之后把数据推送至队列，在消息通知系统一条条去消费，效率可能比较低
 
 注意项
 
 - Java 9版本之后Base64Encoder和Base64Decoder无法继续使用，在MyMiniUtils中BASE64Encoder可以修改为Encoder
 
+Future
+
+- 教务系统接入 √
+
+- 动态说说 √
+
+- 热点动态 √
+
+- 扫脸寻人 √
+
+- 即时聊天 √
+
+- 校园巴士 √
+
+- 失物招领 √
+
+- 消息通知
+
+- 课表接入
+
+- 成绩查询
+
+- 电费查询
+
+- 兼职信息
+
+- 匿名动态（表白墙）
 
 
-有任何问题，也可以邮我一起交流：codegun@yeah.net
+有任何问题，也可以邮我一起交流：codegun7@gmail.com
+
+客户端相关图片：
+
+![](https://github.com/TanDawn1/HUT_quanquan/blob/master/Im.png)
+![](https://github.com/TanDawn1/HUT_quanquan/blob/master/face.png)
+
+![](https://github.com/TanDawn1/HUT_quanquan/blob/master/hot.png)
+![](https://github.com/TanDawn1/HUT_quanquan/blob/master/BUS.png)
 
