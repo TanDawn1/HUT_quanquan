@@ -76,9 +76,5 @@ Future
 
 客户端相关图片：
 
-![](https://github.com/TanDawn1/HUT_quanquan/blob/master/Im.png)
-![](https://github.com/TanDawn1/HUT_quanquan/blob/master/face.png)
-
-![](https://github.com/TanDawn1/HUT_quanquan/blob/master/hot.png)
-![](https://github.com/TanDawn1/HUT_quanquan/blob/master/BUS.png)
+![](https://github.com/TanDawn1/HUT_quanquan/blob/master/ALL.png)
 
