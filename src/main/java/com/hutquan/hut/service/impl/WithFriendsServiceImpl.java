@@ -351,9 +351,9 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
                 //加分布式锁，防止缓存失效之后数据一次性打到DB
                 String uuid = UUID.randomUUID().toString();
                 try {
-                    while (!redisUtils.lock("lock", uuid)) {
-                        //如果加锁失败  自旋
-                        //直到加锁成功
+                    if (!redisUtils.lock("lock", uuid)) {
+                        //如果加锁失败  返回默认值
+                        return list;
                     }
                     //在进行一次判断
                     jsondata = redisUtils.get("hot");

@@ -22,9 +22,9 @@ spring:
     password: ***
 
   datasource:
-    username: root
-    password: Admin123.
-    url: ***
+    username: ***
+    password: ***
+    url: jdbc:mysql://***:3306/HUT_quan?characterEncoding=UTF-8
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     # 下面为连接池的补充设置，应用到上面所有数据源中
@@ -51,7 +51,7 @@ spring:
     # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
     connect-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
 server:
-  port: ***
+  port: 8083
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml

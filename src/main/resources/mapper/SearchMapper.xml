@@ -52,4 +52,20 @@
         where dynamic.message LIKE #{message} ORDER BY `time` DESC
     </select>
 
+    <select id="queryActive" resultType="com.hutquan.hut.pojo.Active">
+        SELECT  * FROM active ORDER BY `create_time` DESC
+    </select>
+
+    <select id="queryActiveDetailed" resultType="com.hutquan.hut.pojo.Active">
+        SELECT * FROM active WHERE  id = #{activeId}
+    </select>
+
+    <insert id="insert">
+        INSERT activity_records(activity_id,user_id,`time`) VALUES (#{activityId}, #{userId}, #{time})
+    </insert>
+
+    <update id="deductionData">
+        UPDATE  active SET last_person = last_person - 1 WHERE id = #{activeId}
+    </update>
+
 </mapper>
