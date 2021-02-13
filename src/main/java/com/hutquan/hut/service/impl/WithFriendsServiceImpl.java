@@ -367,7 +367,7 @@ public class WithFriendsServiceImpl implements IWithFriendsService {
                 } catch (Exception e){
                     logger.info("加锁之后 处理过程出现异常");
                 }finally {
-                    //无论如何都需要 解锁
+                    //无论如何都需要 解锁 有线程安全问题，需要使用lua脚本解决
                     redisUtils.unlock("lock",uuid);
                 }
             }
