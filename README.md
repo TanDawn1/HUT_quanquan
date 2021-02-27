@@ -9,8 +9,9 @@ JDK版本1.8
 Nginx版本1.16.1
 在对接小程序的时候也使用Nginx反向代理https
 
-数据库设计(Redis部分可能还会去修改，不过不会修改太多)：
+# 相关设计
 sql文件在项目文档中
+(Redis部分可能还会去修改，不过不会修改太多)
 具体设计如图：
 ![image](https://github.com/TanDawn1/HUT_quanquan/blob/master/Minds%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1.jpg)
 
@@ -29,7 +30,7 @@ sql文件在项目文档中
 ![image](https://github.com/TanDawn1/HUT_quanquan/blob/master/Minds%20.png)
 
 
-待优化项
+# 待优化项
 
 - 对于图片数据应该存储两份: 一份缩略图、一份去除相关信息的原图 这样客户端在点击详情之后在获取原图，在网络不好的情况下体验会好一点
 
@@ -43,11 +44,11 @@ sql文件在项目文档中
 
 - 所有的对数据库修改的操作都应该走队列，尽可能减轻数据库负担
 
-注意项
+# 注意项
 
 - Java 9版本之后Base64Encoder和Base64Decoder无法继续使用，在MyMiniUtils中BASE64Encoder可以修改为Encoder
 
-Future
+# Future
 
 - 教务系统接入 √
 
@@ -80,7 +81,7 @@ Future
 
 有任何问题，也可以邮我一起交流：codegun7@gmail.com
 
-客户端相关图片：
+# 客户端相关图片：
 
 ![](https://github.com/TanDawn1/HUT_quanquan/blob/master/ALL.png)
 
